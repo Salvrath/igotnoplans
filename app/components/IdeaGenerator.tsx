@@ -12,6 +12,28 @@ type Props = {
   shareText: string;
 };
 
+function ShuffleIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M16 3h5v5" />
+      <path d="M4 20l16-16" />
+      <path d="M21 16v5h-5" />
+      <path d="M15 15l6 6" />
+      <path d="M4 4l5 5" />
+    </svg>
+  );
+}
+
+
 export default function IdeaGenerator({ useCase, headline, subheadline, shareText }: Props) {
   const [city, setCity] = useState("Stockholm");
   const [timeWindow, setTimeWindow] = useState<TimeWindow>("tonight");
@@ -201,14 +223,16 @@ useEffect(() => {
   onClick={generate}
   disabled={!current}
   className={[
-    "rounded-xl border px-4 py-2 font-medium transition",
+    "group inline-flex items-center gap-2 rounded-xl border px-4 py-2 font-medium transition",
     !current
       ? "cursor-not-allowed border-zinc-800 text-zinc-500"
       : "border-zinc-700 text-zinc-50 hover:bg-zinc-900",
   ].join(" ")}
 >
-  Generate another
+  <ShuffleIcon className="h-4 w-4 transition-transform group-hover:rotate-180" />
+  Shuffle
 </button>
+
 
             <button
               onClick={share}
