@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { IDEAS, type Idea, type Budget, type Mood, type TimeWindow, type UseCase } from "@/lib/ideas";
 import { pickOne, scoreIdea } from "@/lib/utils";
 
@@ -15,7 +16,14 @@ export default function IdeaGenerator({ useCase, headline, subheadline, shareTex
   const [city, setCity] = useState("Stockholm");
   const [timeWindow, setTimeWindow] = useState<TimeWindow>("tonight");
   const [budget, setBudget] = useState<Budget>("medium");
-  const [mood, setMood] = useState<Mood>("romantic");
+  const defaultMood: Mood =
+  useCase === "friends" ? "fun" :
+  useCase === "solo" ? "chill" :
+  useCase === "family" ? "fun" :
+  "romantic";
+
+const [mood, setMood] = useState<Mood>(defaultMood);
+
   const [indoorsOk, setIndoorsOk] = useState(true);
   const [outdoorsOk, setOutdoorsOk] = useState(true);
 
@@ -35,10 +43,16 @@ export default function IdeaGenerator({ useCase, headline, subheadline, shareTex
 
   const [current, setCurrent] = useState<Idea | null>(null);
 
-  function generate() {
-    const pool = candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase);
-    setCurrent(pickOne(pool));
-  }
+  const didAutoGenerate = useRef(false);
+const [cardNonce, setCardNonce] = useState(0);
+
+
+function generate() {
+  const pool = candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase);
+  setCurrent(pickOne(pool));
+  setCardNonce((n) => n + 1);
+}
+
 
   function getShareUrl() {
     const params = new URLSearchParams({
@@ -97,6 +111,17 @@ useEffect(() => {
   if (outdoor === "0") setOutdoorsOk(false);
 }, []);
 
+useEffect(() => {
+  if (didAutoGenerate.current) return;
+
+  // Vänta tills vi har en pool (candidates bygger på state som kan komma från query params)
+  const pool = candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase);
+  if (!pool.length) return;
+
+  didAutoGenerate.current = true;
+  setCurrent(pickOne(pool));
+  setCardNonce((n) => n + 1);
+}, [candidates, useCase]);
 
 
   return (
@@ -172,12 +197,19 @@ useEffect(() => {
             >
               Give me an idea
             </button>
-            <button
-              onClick={generate}
-              className="rounded-xl border border-zinc-700 bg-transparent px-4 py-2 font-medium text-zinc-50 hover:bg-zinc-900"
-            >
-              Generate another
-            </button>
+<button
+  onClick={generate}
+  disabled={!current}
+  className={[
+    "rounded-xl border px-4 py-2 font-medium transition",
+    !current
+      ? "cursor-not-allowed border-zinc-800 text-zinc-500"
+      : "border-zinc-700 text-zinc-50 hover:bg-zinc-900",
+  ].join(" ")}
+>
+  Generate another
+</button>
+
             <button
               onClick={share}
               className="rounded-xl border border-zinc-700 bg-transparent px-4 py-2 font-medium text-zinc-50 hover:bg-zinc-900"
@@ -189,7 +221,10 @@ useEffect(() => {
 
         <section className="mt-6">
           {current ? (
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+            <div
+  key={`${current.id}-${cardNonce}`}
+  className="igp-fade-up rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6"
+>
               <h2 className="text-2xl font-semibold">{current.title}</h2>
               <p className="mt-2 text-zinc-200">{current.description}</p>
 
@@ -220,6 +255,8 @@ useEffect(() => {
 }
 
 function TopNav() {
+  const pathname = usePathname();
+
   const links = [
     { href: "/date-ideas", label: "Date" },
     { href: "/friends", label: "Friends" },
@@ -230,15 +267,23 @@ function TopNav() {
 
   return (
     <nav className="mb-6 flex flex-wrap gap-2">
-      {links.map((l) => (
-        <a
-          key={l.href}
-          href={l.href}
-          className="rounded-full border border-zinc-800 bg-zinc-900/30 px-3 py-1 text-sm text-zinc-200 hover:bg-zinc-900"
-        >
-          {l.label}
-        </a>
-      ))}
+      {links.map((l) => {
+        const active = pathname === l.href;
+        return (
+          <a
+            key={l.href}
+            href={l.href}
+            className={[
+              "rounded-full border px-3 py-1 text-sm transition",
+              active
+                ? "border-zinc-300 bg-zinc-50 text-zinc-950"
+                : "border-zinc-800 bg-zinc-900/30 text-zinc-200 hover:bg-zinc-900",
+            ].join(" ")}
+          >
+            {l.label}
+          </a>
+        );
+      })}
     </nav>
   );
 }
@@ -257,12 +302,25 @@ function Toggle({ checked, onClick, label }: { checked: boolean; onClick: () => 
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={checked}
       className={[
-        "rounded-full border px-3 py-1 text-sm",
-        checked ? "border-zinc-600 bg-zinc-900 text-zinc-50" : "border-zinc-800 bg-transparent text-zinc-300",
+        "rounded-full border px-3 py-1 text-sm transition",
+        "focus:outline-none focus:ring-2 focus:ring-zinc-600",
+        checked
+          ? "border-emerald-400/60 bg-emerald-400/15 text-emerald-100"
+          : "border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-900",
       ].join(" ")}
     >
-      {label}
+      <span className="inline-flex items-center gap-2">
+        <span
+          className={[
+            "inline-block h-2 w-2 rounded-full",
+            checked ? "bg-emerald-300" : "bg-zinc-600",
+          ].join(" ")}
+        />
+        {label}
+      </span>
     </button>
   );
 }
+
