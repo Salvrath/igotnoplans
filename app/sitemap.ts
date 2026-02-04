@@ -22,5 +22,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.9,
     },
+    {
+  url: "https://igotnoplans.com/friends",
+  lastModified: now,
+  changeFrequency: "weekly",
+  priority: 0.9,
+},
+{
+  url: "https://igotnoplans.com/solo",
+  lastModified: now,
+  changeFrequency: "weekly",
+  priority: 0.9,
+},
+{
+  url: "https://igotnoplans.com/family",
+  lastModified: now,
+  changeFrequency: "weekly",
+  priority: 0.9,
+},
   ];
 }
