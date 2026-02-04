@@ -33,6 +33,21 @@ export default function Home() {
     setCurrent(pickOne(pool));
   }
 
+  async function share() {
+  const url = typeof window !== "undefined" ? window.location.href : "https://igotnoplans.com";
+  const text = "No plans? Get an instant idea:";
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: "I Got No Plans", text, url });
+      return;
+    }
+  } catch {
+    // ignore cancel
+  }
+  await navigator.clipboard.writeText(url);
+  alert("Link copied!");
+}
+
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50">
       <div className="mx-auto max-w-3xl px-4 py-10">
@@ -112,6 +127,13 @@ export default function Home() {
             >
               Generate another
             </button>
+            <button
+  onClick={share}
+  className="rounded-xl border border-zinc-700 bg-transparent px-4 py-2 font-medium text-zinc-50 hover:bg-zinc-900"
+>
+  Share
+</button>
+
           </div>
         </section>
 
