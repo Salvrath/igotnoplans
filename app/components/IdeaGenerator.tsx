@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { IDEAS, type Idea, type Budget, type Mood, type TimeWindow, type UseCase } from "@/lib/ideas";
 import { pickOne, scoreIdea } from "@/lib/utils";
 
@@ -67,24 +67,37 @@ export default function IdeaGenerator({ useCase, headline, subheadline, shareTex
   }
 
   // Load state from URL on first render
-  useMemo(() => {
-    if (typeof window === "undefined") return;
-    const p = new URLSearchParams(window.location.search);
+useEffect(() => {
+  const p = new URLSearchParams(window.location.search);
 
-    const c = p.get("city");
-    const t = p.get("time") as TimeWindow | null;
-    const b = p.get("budget") as Budget | null;
-    const m = p.get("mood") as Mood | null;
-    const indoor = p.get("indoor");
-    const outdoor = p.get("outdoor");
+  const c = p.get("city")?.trim();
 
-    if (c) setCity(c);
-    if (t && ["tonight", "halfday", "fullday"].includes(t)) setTimeWindow(t);
-    if (b && ["low", "medium", "high"].includes(b)) setBudget(b);
-    if (m && ["cozy", "active", "romantic", "fun", "chill"].includes(m)) setMood(m);
-    if (indoor === "0") setIndoorsOk(false);
-    if (outdoor === "0") setOutdoorsOk(false);
-  }, []);
+  const tRaw = p.get("time")?.toLowerCase();
+  const bRaw = p.get("budget")?.toLowerCase();
+  const mRaw = p.get("mood")?.toLowerCase();
+
+  const indoor = p.get("indoor");
+  const outdoor = p.get("outdoor");
+
+  if (c) setCity(c);
+
+  if (tRaw === "tonight" || tRaw === "halfday" || tRaw === "fullday") {
+    setTimeWindow(tRaw as TimeWindow);
+  }
+
+  if (bRaw === "low" || bRaw === "medium" || bRaw === "high") {
+    setBudget(bRaw as Budget);
+  }
+
+  if (mRaw === "cozy" || mRaw === "active" || mRaw === "romantic" || mRaw === "fun" || mRaw === "chill") {
+    setMood(mRaw as Mood);
+  }
+
+  if (indoor === "0") setIndoorsOk(false);
+  if (outdoor === "0") setOutdoorsOk(false);
+}, []);
+
+
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50">
