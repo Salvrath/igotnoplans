@@ -10,7 +10,9 @@ type Props = {
   headline: string;
   subheadline: string;
   shareText: string;
+  defaultCity?: string;
 };
+
 
 function ShuffleIcon({ className = "" }: { className?: string }) {
   return (
@@ -34,8 +36,20 @@ function ShuffleIcon({ className = "" }: { className?: string }) {
 }
 
 
-export default function IdeaGenerator({ useCase, headline, subheadline, shareText }: Props) {
-  const [city, setCity] = useState("Stockholm");
+export default function IdeaGenerator({
+  useCase,
+  headline,
+  subheadline,
+  shareText,
+  defaultCity,
+}: Props) {
+  const [city, setCity] = useState(defaultCity ?? "");
+
+  useEffect(() => {
+  if (defaultCity) setCity(defaultCity);
+}, [defaultCity]);
+
+
   const [timeWindow, setTimeWindow] = useState<TimeWindow>("tonight");
   const [budget, setBudget] = useState<Budget>("medium");
   const defaultMood: Mood =

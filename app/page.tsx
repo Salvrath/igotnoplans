@@ -164,6 +164,21 @@ export default function Home() {
         </section>
 
         <footer className="mt-10 text-xs text-zinc-500">
+          <section className="mt-12 text-sm text-zinc-400">
+  <div className="mb-2 font-medium text-zinc-300">Popular cities</div>
+  <div className="flex flex-wrap gap-3">
+    {["stockholm", "london", "paris", "berlin", "new-york"].map((c) => (
+      <a
+        key={c}
+        href={`/things-to-do-in/${c}`}
+        className="underline hover:text-zinc-200"
+      >
+        Things to do in {c.replace("-", " ")}
+      </a>
+    ))}
+  </div>
+</section>
+
           © {new Date().getFullYear()} igotnoplans.com
         </footer>
       </div>
