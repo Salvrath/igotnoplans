@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { IDEAS, type Idea, type Budget, type Mood, type TimeWindow, type UseCase } from "@/lib/ideas";
+import { ALL_IDEAS as IDEAS, type Idea, type Budget, type Mood, type TimeWindow, type UseCase } from "@/lib/ideas";
 import { pickOne, scoreIdea } from "@/lib/utils";
 
 type Props = {
@@ -49,19 +49,80 @@ const [mood, setMood] = useState<Mood>(defaultMood);
   const [indoorsOk, setIndoorsOk] = useState(true);
   const [outdoorsOk, setOutdoorsOk] = useState(true);
 
-  const candidates = useMemo(() => {
+function buildPool(relaxLevel: 0 | 1 | 2 | 3 | 4) {
+  return IDEAS
+    .filter((i) => i.useCase === useCase)
+    .filter((i) => (relaxLevel >= 4 ? true : i.timeWindows.includes(timeWindow)))
+    .filter((i) => (relaxLevel >= 3 ? true : i.budgets.includes(budget)))
+    .filter((i) => (relaxLevel >= 2 ? true : i.moods.includes(mood)))
+    .filter((i) => {
+      if (relaxLevel >= 1) return true; // relax indoor/outdoor
+      if (!indoorsOk && i.place === "indoors") return false;
+      if (!outdoorsOk && i.place === "outdoors") return false;
+      return true;
+    });
+}
+
+const MIN_POOL = 20; // mål: minst 20 för en bra upplevelse
+
+
+const candidates = useMemo(() => {
+  function strictPool() {
     return IDEAS
       .filter((i) => i.useCase === useCase)
       .filter((i) => i.timeWindows.includes(timeWindow))
       .filter((i) => i.budgets.includes(budget))
       .filter((i) => i.moods.includes(mood))
-      .filter((i) => (indoorsOk ? true : i.place !== "indoors"))
-      .filter((i) => (outdoorsOk ? true : i.place !== "outdoors"))
-      .map((i) => ({ idea: i, score: scoreIdea(i, { city, timeWindow, budget, mood }) }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 30)
-      .map((x) => x.idea);
-  }, [budget, city, indoorsOk, mood, outdoorsOk, timeWindow, useCase]);
+      .filter((i) => {
+        if (!indoorsOk && i.place === "indoors") return false;
+        if (!outdoorsOk && i.place === "outdoors") return false;
+        return true;
+      });
+  }
+
+  function relaxPlace() {
+    return IDEAS
+      .filter((i) => i.useCase === useCase)
+      .filter((i) => i.timeWindows.includes(timeWindow))
+      .filter((i) => i.budgets.includes(budget))
+      .filter((i) => i.moods.includes(mood));
+  }
+
+  function relaxMood() {
+    return IDEAS
+      .filter((i) => i.useCase === useCase)
+      .filter((i) => i.timeWindows.includes(timeWindow))
+      .filter((i) => i.budgets.includes(budget));
+  }
+
+  function relaxBudget() {
+    return IDEAS
+      .filter((i) => i.useCase === useCase)
+      .filter((i) => i.timeWindows.includes(timeWindow));
+  }
+
+  function relaxTime() {
+    return IDEAS.filter((i) => i.useCase === useCase);
+  }
+
+  let pool = strictPool();
+  if (pool.length >= MIN_POOL) return pool;
+
+  pool = relaxPlace();
+  if (pool.length >= MIN_POOL) return pool;
+
+  pool = relaxMood();
+  if (pool.length >= MIN_POOL) return pool;
+
+  pool = relaxBudget();
+  if (pool.length >= MIN_POOL) return pool;
+
+  pool = relaxTime();
+  return pool;
+}, [budget, indoorsOk, mood, outdoorsOk, timeWindow, useCase]);
+
+
+
 
   const [current, setCurrent] = useState<Idea | null>(null);
 
@@ -211,6 +272,7 @@ useEffect(() => {
             <Toggle checked={indoorsOk} onClick={() => setIndoorsOk((s) => !s)} label="Indoor OK" />
             <Toggle checked={outdoorsOk} onClick={() => setOutdoorsOk((s) => !s)} label="Outdoor OK" />
           </div>
+<div className="mt-3 text-xs text-zinc-500">Pool size: {candidates.length}</div>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <button
