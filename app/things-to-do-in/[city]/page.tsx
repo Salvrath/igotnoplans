@@ -1,29 +1,38 @@
 import ClientPage from "./ClientPage";
+import NearbyCities from "@/app/components/NearbyCities";
+import { CITY_GEO, SEED_CITIES, type CitySlug } from "@/lib/cities";
+import { getNearbyCities } from "@/lib/nearby";
+import { notFound } from "next/navigation";
 
-type Props = {
-  params: { city?: string };
-};
+type Params = { city?: string };
+type Props = { params: Params | Promise<Params> };
 
-function normalizeCity(slug?: string) {
-  const raw = decodeURIComponent(slug ?? "").trim();
-  if (!raw) return "Stockholm";
-  const spaced = raw.replace(/-/g, " ");
-  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+async function unwrapParams(p: Props["params"]): Promise<Params> {
+  return (p as any)?.then ? await (p as Promise<Params>) : (p as Params);
 }
 
-export function generateMetadata({ params }: Props) {
-  const cityTitle = normalizeCity(params.city);
+function getCitySlug(paramsCity?: string): CitySlug {
+  const raw = decodeURIComponent(paramsCity ?? "").trim().toLowerCase();
+  const slug = (raw || "stockholm") as CitySlug;
+  if (!SEED_CITIES.includes(slug)) notFound();
+  return slug;
+}
+
+export async function generateMetadata({ params }: Props) {
+  const p = await unwrapParams(params);
+  const citySlug = getCitySlug(p.city);
+  const cityTitle = CITY_GEO[citySlug]?.name ?? citySlug;
+
+  const canonical = `https://igotnoplans.com/things-to-do-in/${citySlug}`;
 
   return {
     title: `Things to do in ${cityTitle} | I Got No Plans`,
     description: `No plans in ${cityTitle}? Get instant ideas for dates, friends, solo and family.`,
-    alternates: {
-      canonical: `https://igotnoplans.com/things-to-do-in/${params.city ?? "stockholm"}`,
-    },
+    alternates: { canonical },
     openGraph: {
       title: `Things to do in ${cityTitle} | I Got No Plans`,
       description: `No plans in ${cityTitle}? Get instant ideas for dates, friends, solo and family.`,
-      url: `https://igotnoplans.com/things-to-do-in/${params.city ?? "stockholm"}`,
+      url: canonical,
       siteName: "I Got No Plans",
       type: "website",
     },
@@ -35,6 +44,19 @@ export function generateMetadata({ params }: Props) {
   };
 }
 
-export default function Page() {
-  return <ClientPage />;
+export default async function Page({ params }: Props) {
+  const p = await unwrapParams(params);
+  const citySlug = getCitySlug(p.city);
+  const cityTitle = CITY_GEO[citySlug]?.name ?? citySlug;
+
+  const nearby = getNearbyCities(citySlug, 8);
+
+  return (
+    <>
+      <ClientPage />
+      <div className="mx-auto max-w-3xl px-4 pb-10">
+        <NearbyCities currentCityName={cityTitle} items={nearby} />
+      </div>
+    </>
+  );
 }
