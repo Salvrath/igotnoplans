@@ -27,7 +27,7 @@ export default function ClientPresetPage() {
   return (
     <IdeaGenerator
       key={`${city}:${preset}`}
-      presetDefaults={{ timeWindow: "tonight", budnpmget: "low", mood: "chill", indoorsOk: true, outdoorsOk: false }}
+      presetDefaults={{ timeWindow: "tonight", budget: "low", mood: "chill", indoorsOk: true, outdoorsOk: false }}
       useCase={(presetConfig.defaults.useCase ?? "date") as any}
       headline={`Things to do in ${cityTitle} ${presetConfig.titleSuffix}.`}
       subheadline={`No plans in ${cityTitle}? Here are ${presetConfig.label.toLowerCase()} ideas.`}
