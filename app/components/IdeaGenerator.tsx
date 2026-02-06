@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import {
   ALL_IDEAS as IDEAS,
@@ -12,12 +12,22 @@ import {
 } from "@/lib/ideas";
 import { pickOne } from "@/lib/utils";
 
+type PresetDefaults = Partial<{
+  useCase: UseCase;
+  timeWindow: TimeWindow;
+  budget: Budget;
+  mood: Mood;
+  indoorsOk: boolean;
+  outdoorsOk: boolean;
+}>;
+
 type Props = {
   useCase: UseCase;
   headline: string;
   subheadline: string;
   shareText: string;
   defaultCity?: string;
+  presetDefaults?: PresetDefaults;
 };
 
 function ShuffleIcon({ className = "" }: { className?: string }) {
@@ -60,56 +70,101 @@ function getDefaultMood(useCase: UseCase): Mood {
     : "romantic";
 }
 
-function safeInitState(defaultCity: string | undefined, defaultMood: Mood): InitState {
+function parseTimeWindow(v?: string | null): TimeWindow | null {
+  const t = (v ?? "").toLowerCase();
+  if (t === "tonight") return "tonight";
+  if (t === "halfday" || t === "half-day") return "halfday";
+  if (t === "fullday" || t === "full-day") return "fullday";
+  return null;
+}
+
+function parseBudget(v?: string | null): Budget | null {
+  const b = (v ?? "").toLowerCase();
+  if (b === "low" || b === "medium" || b === "high") return b as Budget;
+  return null;
+}
+
+function parseMood(v?: string | null): Mood | null {
+  const m = (v ?? "").toLowerCase();
+  if (m === "cozy" || m === "active" || m === "romantic" || m === "fun" || m === "chill") return m as Mood;
+  return null;
+}
+
+function safeInitState(
+  defaultCity: string | undefined,
+  defaultMood: Mood,
+  presetDefaults?: PresetDefaults
+): InitState {
   // Server-säker fallback
   if (typeof window === "undefined") {
     return {
       city: defaultCity ?? "",
-      timeWindow: "tonight",
-      budget: "medium",
-      mood: defaultMood,
-      indoorsOk: true,
-      outdoorsOk: true,
+      timeWindow: presetDefaults?.timeWindow ?? "tonight",
+      budget: presetDefaults?.budget ?? "medium",
+      mood: presetDefaults?.mood ?? defaultMood,
+      indoorsOk: presetDefaults?.indoorsOk ?? true,
+      outdoorsOk: presetDefaults?.outdoorsOk ?? true,
     };
   }
 
   const p = new URLSearchParams(window.location.search);
 
+  // URL params (ska vinna över preset)
   const c = p.get("city")?.trim();
+  const timeFromUrl = parseTimeWindow(p.get("time"));
+  const budgetFromUrl = parseBudget(p.get("budget"));
+  const moodFromUrl = parseMood(p.get("mood"));
 
-  const tRaw = p.get("time")?.toLowerCase();
-  const bRaw = p.get("budget")?.toLowerCase();
-  const mRaw = p.get("mood")?.toLowerCase();
+  const indoorRaw = p.get("indoor");
+  const outdoorRaw = p.get("outdoor");
 
-  const indoor = p.get("indoor");
-  const outdoor = p.get("outdoor");
+  const indoorsFromUrl = indoorRaw === null ? null : indoorRaw === "0" ? false : true;
+  const outdoorsFromUrl = outdoorRaw === null ? null : outdoorRaw === "0" ? false : true;
 
-  const timeWindow: TimeWindow =
-    tRaw === "tonight" || tRaw === "halfday" || tRaw === "fullday" ? (tRaw as TimeWindow) : "tonight";
+  // Merge order:
+  // 1) presetDefaults
+  // 2) URL params (override)
+  // 3) fallbacks
+  const timeWindow =
+    timeFromUrl ?? presetDefaults?.timeWindow ?? "tonight";
 
-  const budget: Budget =
-    bRaw === "low" || bRaw === "medium" || bRaw === "high" ? (bRaw as Budget) : "medium";
+  const budget =
+    budgetFromUrl ?? presetDefaults?.budget ?? "medium";
 
-  const mood: Mood =
-    mRaw === "cozy" || mRaw === "active" || mRaw === "romantic" || mRaw === "fun" || mRaw === "chill"
-      ? (mRaw as Mood)
-      : defaultMood;
+  const mood =
+    moodFromUrl ?? presetDefaults?.mood ?? defaultMood;
+
+  const indoorsOk =
+    indoorsFromUrl ?? presetDefaults?.indoorsOk ?? true;
+
+  const outdoorsOk =
+    outdoorsFromUrl ?? presetDefaults?.outdoorsOk ?? true;
 
   return {
     city: c ?? defaultCity ?? "",
     timeWindow,
     budget,
     mood,
-    indoorsOk: indoor === "0" ? false : true,
-    outdoorsOk: outdoor === "0" ? false : true,
+    indoorsOk,
+    outdoorsOk,
   };
 }
 
-export default function IdeaGenerator({ useCase, headline, subheadline, shareText, defaultCity }: Props) {
+export default function IdeaGenerator({
+  useCase,
+  headline,
+  subheadline,
+  shareText,
+  defaultCity,
+  presetDefaults,
+}: Props) {
   const defaultMood = getDefaultMood(useCase);
 
-  // Init från URL + defaultCity (utan useEffect => lint OK)
-  const init = useMemo(() => safeInitState(defaultCity, defaultMood), [defaultCity, defaultMood]);
+  // Init från preset + URL + defaultCity
+  const init = useMemo(
+    () => safeInitState(defaultCity, defaultMood, presetDefaults),
+    [defaultCity, defaultMood, presetDefaults]
+  );
 
   const [city, setCity] = useState(init.city);
   const [timeWindow, setTimeWindow] = useState<TimeWindow>(init.timeWindow);
@@ -147,7 +202,9 @@ export default function IdeaGenerator({ useCase, headline, subheadline, shareTex
     }
 
     function relaxBudget() {
-      return IDEAS.filter((i) => i.useCase === useCase).filter((i) => i.timeWindows.includes(timeWindow));
+      return IDEAS.filter((i) => i.useCase === useCase).filter((i) =>
+        i.timeWindows.includes(timeWindow)
+      );
     }
 
     function relaxTime() {
@@ -169,12 +226,21 @@ export default function IdeaGenerator({ useCase, headline, subheadline, shareTex
     return relaxTime();
   }, [budget, indoorsOk, mood, outdoorsOk, timeWindow, useCase]);
 
-  // Auto-generate direkt (utan effect => lint OK)
   const [cardNonce, setCardNonce] = useState(0);
+
+  // Start: välj en idé från candidates
   const [current, setCurrent] = useState<Idea | null>(() => {
     const pool = (candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase)) as Idea[];
     return pool.length ? pickOne(pool) : null;
   });
+
+  // När filters ändras: generera en ny idé automatiskt (så card matchar current filters)
+  useEffect(() => {
+    const pool = candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase);
+    setCurrent(pool.length ? pickOne(pool) : null);
+    setCardNonce((n) => n + 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [useCase, timeWindow, budget, mood, indoorsOk, outdoorsOk]);
 
   function generate() {
     const pool = candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase);

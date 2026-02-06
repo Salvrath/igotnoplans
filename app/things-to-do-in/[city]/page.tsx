@@ -3,6 +3,7 @@ import NearbyCities from "@/app/components/NearbyCities";
 import { CITY_GEO, SEED_CITIES, type CitySlug } from "@/lib/cities";
 import { getNearbyCities } from "@/lib/nearby";
 import { notFound } from "next/navigation";
+import PopularSearches from "@/app/components/PopularSearches";
 
 type Params = { city?: string };
 type Props = { params: Params | Promise<Params> };
@@ -44,6 +45,8 @@ export async function generateMetadata({ params }: Props) {
   };
 }
 
+
+
 export default async function Page({ params }: Props) {
   const p = await unwrapParams(params);
   const citySlug = getCitySlug(p.city);
@@ -55,7 +58,20 @@ export default async function Page({ params }: Props) {
     <>
       <ClientPage />
       <div className="mx-auto max-w-3xl px-4 pb-10">
-        <NearbyCities currentCityName={cityTitle} items={nearby} />
+<ClientPage />
+
+<div className="mx-auto max-w-3xl px-4 pb-10">
+  <PopularSearches
+    citySlug={citySlug}
+    cityName={cityTitle}
+  />
+
+  <NearbyCities
+    currentCityName={cityTitle}
+    items={nearby}
+  />
+</div>
+
       </div>
     </>
   );
