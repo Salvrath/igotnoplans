@@ -286,7 +286,6 @@ useEffect(() => {
             <Toggle checked={indoorsOk} onClick={() => setIndoorsOk((s) => !s)} label="Indoor OK" />
             <Toggle checked={outdoorsOk} onClick={() => setOutdoorsOk((s) => !s)} label="Outdoor OK" />
           </div>
-<div className="mt-3 text-xs text-zinc-500">Pool size: {candidates.length}</div>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <button
