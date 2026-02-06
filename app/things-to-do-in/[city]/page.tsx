@@ -1,7 +1,8 @@
-"use client";
+import ClientPage from "./ClientPage";
 
-import IdeaGenerator from "@/app/components/IdeaGenerator";
-import { useParams } from "next/navigation";
+type Props = {
+  params: { city?: string };
+};
 
 function normalizeCity(slug?: string) {
   const raw = decodeURIComponent(slug ?? "").trim();
@@ -10,21 +11,30 @@ function normalizeCity(slug?: string) {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
-export default function ClientPage() {
-  const params = useParams();
+export function generateMetadata({ params }: Props) {
+  const cityTitle = normalizeCity(params.city);
 
-  const cityParam = (params as any)?.city;
-  const citySlug = Array.isArray(cityParam) ? cityParam[0] : cityParam;
-  const cityTitle = normalizeCity(typeof citySlug === "string" ? citySlug : "");
+  return {
+    title: `Things to do in ${cityTitle} | I Got No Plans`,
+    description: `No plans in ${cityTitle}? Get instant ideas for dates, friends, solo and family.`,
+    alternates: {
+      canonical: `https://igotnoplans.com/things-to-do-in/${params.city ?? "stockholm"}`,
+    },
+    openGraph: {
+      title: `Things to do in ${cityTitle} | I Got No Plans`,
+      description: `No plans in ${cityTitle}? Get instant ideas for dates, friends, solo and family.`,
+      url: `https://igotnoplans.com/things-to-do-in/${params.city ?? "stockholm"}`,
+      siteName: "I Got No Plans",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `Things to do in ${cityTitle} | I Got No Plans`,
+      description: `No plans in ${cityTitle}? Get instant ideas for dates, friends, solo and family.`,
+    },
+  };
+}
 
-  return (
-    <IdeaGenerator
-      key={citySlug ?? cityTitle}
-      useCase="date"
-      headline={`Things to do in ${cityTitle}.`}
-      subheadline={`No plans in ${cityTitle}? Get a solid idea and go.`}
-      shareText={`No plans in ${cityTitle}? Try this:`}
-      defaultCity={cityTitle}
-    />
-  );
+export default function Page() {
+  return <ClientPage />;
 }

@@ -11,6 +11,7 @@ export default function sitemap() {
     "/solo",
     "/family",
     "/tonight",
+    "/cities",
   ].map((p) => ({
     url: `${baseUrl}${p}`,
     lastModified: now,

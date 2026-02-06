@@ -1,9 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ALL_IDEAS as IDEAS, type Idea, type Budget, type Mood, type TimeWindow, type UseCase } from "@/lib/ideas";
-import { pickOne, scoreIdea } from "@/lib/utils";
+import {
+  ALL_IDEAS as IDEAS,
+  type Idea,
+  type Budget,
+  type Mood,
+  type TimeWindow,
+  type UseCase,
+} from "@/lib/ideas";
+import { pickOne } from "@/lib/utils";
 
 type Props = {
   useCase: UseCase;
@@ -12,7 +19,6 @@ type Props = {
   shareText: string;
   defaultCity?: string;
 };
-
 
 function ShuffleIcon({ className = "" }: { className?: string }) {
   return (
@@ -35,121 +41,146 @@ function ShuffleIcon({ className = "" }: { className?: string }) {
   );
 }
 
+type InitState = {
+  city: string;
+  timeWindow: TimeWindow;
+  budget: Budget;
+  mood: Mood;
+  indoorsOk: boolean;
+  outdoorsOk: boolean;
+};
 
-export default function IdeaGenerator({
-  useCase,
-  headline,
-  subheadline,
-  shareText,
-  defaultCity,
-}: Props) {
-  const [city, setCity] = useState(defaultCity ?? "");
-
-  useEffect(() => {
-  if (defaultCity) setCity(defaultCity);
-}, [defaultCity]);
-
-
-  const [timeWindow, setTimeWindow] = useState<TimeWindow>("tonight");
-  const [budget, setBudget] = useState<Budget>("medium");
-  const defaultMood: Mood =
-  useCase === "friends" ? "fun" :
-  useCase === "solo" ? "chill" :
-  useCase === "family" ? "fun" :
-  "romantic";
-
-const [mood, setMood] = useState<Mood>(defaultMood);
-
-  const [indoorsOk, setIndoorsOk] = useState(true);
-  const [outdoorsOk, setOutdoorsOk] = useState(true);
-
-function buildPool(relaxLevel: 0 | 1 | 2 | 3 | 4) {
-  return IDEAS
-    .filter((i) => i.useCase === useCase)
-    .filter((i) => (relaxLevel >= 4 ? true : i.timeWindows.includes(timeWindow)))
-    .filter((i) => (relaxLevel >= 3 ? true : i.budgets.includes(budget)))
-    .filter((i) => (relaxLevel >= 2 ? true : i.moods.includes(mood)))
-    .filter((i) => {
-      if (relaxLevel >= 1) return true; // relax indoor/outdoor
-      if (!indoorsOk && i.place === "indoors") return false;
-      if (!outdoorsOk && i.place === "outdoors") return false;
-      return true;
-    });
+function getDefaultMood(useCase: UseCase): Mood {
+  return useCase === "friends"
+    ? "fun"
+    : useCase === "solo"
+    ? "chill"
+    : useCase === "family"
+    ? "fun"
+    : "romantic";
 }
 
-const MIN_POOL = 20; // mål: minst 20 för en bra upplevelse
-
-
-const candidates = useMemo(() => {
-  function strictPool() {
-    return IDEAS
-      .filter((i) => i.useCase === useCase)
-      .filter((i) => i.timeWindows.includes(timeWindow))
-      .filter((i) => i.budgets.includes(budget))
-      .filter((i) => i.moods.includes(mood))
-      .filter((i) => {
-        if (!indoorsOk && i.place === "indoors") return false;
-        if (!outdoorsOk && i.place === "outdoors") return false;
-        return true;
-      });
+function safeInitState(defaultCity: string | undefined, defaultMood: Mood): InitState {
+  // Server-säker fallback
+  if (typeof window === "undefined") {
+    return {
+      city: defaultCity ?? "",
+      timeWindow: "tonight",
+      budget: "medium",
+      mood: defaultMood,
+      indoorsOk: true,
+      outdoorsOk: true,
+    };
   }
 
-  function relaxPlace() {
-    return IDEAS
-      .filter((i) => i.useCase === useCase)
-      .filter((i) => i.timeWindows.includes(timeWindow))
-      .filter((i) => i.budgets.includes(budget))
-      .filter((i) => i.moods.includes(mood));
-  }
+  const p = new URLSearchParams(window.location.search);
 
-  function relaxMood() {
-    return IDEAS
-      .filter((i) => i.useCase === useCase)
-      .filter((i) => i.timeWindows.includes(timeWindow))
-      .filter((i) => i.budgets.includes(budget));
-  }
+  const c = p.get("city")?.trim();
 
-  function relaxBudget() {
-    return IDEAS
-      .filter((i) => i.useCase === useCase)
-      .filter((i) => i.timeWindows.includes(timeWindow));
-  }
+  const tRaw = p.get("time")?.toLowerCase();
+  const bRaw = p.get("budget")?.toLowerCase();
+  const mRaw = p.get("mood")?.toLowerCase();
 
-  function relaxTime() {
-    return IDEAS.filter((i) => i.useCase === useCase);
-  }
+  const indoor = p.get("indoor");
+  const outdoor = p.get("outdoor");
 
-  let pool = strictPool();
-  if (pool.length >= MIN_POOL) return pool;
+  const timeWindow: TimeWindow =
+    tRaw === "tonight" || tRaw === "halfday" || tRaw === "fullday" ? (tRaw as TimeWindow) : "tonight";
 
-  pool = relaxPlace();
-  if (pool.length >= MIN_POOL) return pool;
+  const budget: Budget =
+    bRaw === "low" || bRaw === "medium" || bRaw === "high" ? (bRaw as Budget) : "medium";
 
-  pool = relaxMood();
-  if (pool.length >= MIN_POOL) return pool;
+  const mood: Mood =
+    mRaw === "cozy" || mRaw === "active" || mRaw === "romantic" || mRaw === "fun" || mRaw === "chill"
+      ? (mRaw as Mood)
+      : defaultMood;
 
-  pool = relaxBudget();
-  if (pool.length >= MIN_POOL) return pool;
-
-  pool = relaxTime();
-  return pool;
-}, [budget, indoorsOk, mood, outdoorsOk, timeWindow, useCase]);
-
-
-
-
-  const [current, setCurrent] = useState<Idea | null>(null);
-
-  const didAutoGenerate = useRef(false);
-const [cardNonce, setCardNonce] = useState(0);
-
-
-function generate() {
-  const pool = candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase);
-  setCurrent(pickOne(pool));
-  setCardNonce((n) => n + 1);
+  return {
+    city: c ?? defaultCity ?? "",
+    timeWindow,
+    budget,
+    mood,
+    indoorsOk: indoor === "0" ? false : true,
+    outdoorsOk: outdoor === "0" ? false : true,
+  };
 }
 
+export default function IdeaGenerator({ useCase, headline, subheadline, shareText, defaultCity }: Props) {
+  const defaultMood = getDefaultMood(useCase);
+
+  // Init från URL + defaultCity (utan useEffect => lint OK)
+  const init = useMemo(() => safeInitState(defaultCity, defaultMood), [defaultCity, defaultMood]);
+
+  const [city, setCity] = useState(init.city);
+  const [timeWindow, setTimeWindow] = useState<TimeWindow>(init.timeWindow);
+  const [budget, setBudget] = useState<Budget>(init.budget);
+  const [mood, setMood] = useState<Mood>(init.mood);
+  const [indoorsOk, setIndoorsOk] = useState(init.indoorsOk);
+  const [outdoorsOk, setOutdoorsOk] = useState(init.outdoorsOk);
+
+  const MIN_POOL = 20;
+
+  const candidates = useMemo(() => {
+    function strictPool() {
+      return IDEAS.filter((i) => i.useCase === useCase)
+        .filter((i) => i.timeWindows.includes(timeWindow))
+        .filter((i) => i.budgets.includes(budget))
+        .filter((i) => i.moods.includes(mood))
+        .filter((i) => {
+          if (!indoorsOk && i.place === "indoors") return false;
+          if (!outdoorsOk && i.place === "outdoors") return false;
+          return true;
+        });
+    }
+
+    function relaxPlace() {
+      return IDEAS.filter((i) => i.useCase === useCase)
+        .filter((i) => i.timeWindows.includes(timeWindow))
+        .filter((i) => i.budgets.includes(budget))
+        .filter((i) => i.moods.includes(mood));
+    }
+
+    function relaxMood() {
+      return IDEAS.filter((i) => i.useCase === useCase)
+        .filter((i) => i.timeWindows.includes(timeWindow))
+        .filter((i) => i.budgets.includes(budget));
+    }
+
+    function relaxBudget() {
+      return IDEAS.filter((i) => i.useCase === useCase).filter((i) => i.timeWindows.includes(timeWindow));
+    }
+
+    function relaxTime() {
+      return IDEAS.filter((i) => i.useCase === useCase);
+    }
+
+    let pool = strictPool();
+    if (pool.length >= MIN_POOL) return pool;
+
+    pool = relaxPlace();
+    if (pool.length >= MIN_POOL) return pool;
+
+    pool = relaxMood();
+    if (pool.length >= MIN_POOL) return pool;
+
+    pool = relaxBudget();
+    if (pool.length >= MIN_POOL) return pool;
+
+    return relaxTime();
+  }, [budget, indoorsOk, mood, outdoorsOk, timeWindow, useCase]);
+
+  // Auto-generate direkt (utan effect => lint OK)
+  const [cardNonce, setCardNonce] = useState(0);
+  const [current, setCurrent] = useState<Idea | null>(() => {
+    const pool = (candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase)) as Idea[];
+    return pool.length ? pickOne(pool) : null;
+  });
+
+  function generate() {
+    const pool = candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase);
+    setCurrent(pool.length ? pickOne(pool) : null);
+    setCardNonce((n) => n + 1);
+  }
 
   function getShareUrl() {
     const params = new URLSearchParams({
@@ -176,50 +207,6 @@ function generate() {
     await navigator.clipboard.writeText(url);
     alert("Link copied!");
   }
-
-  // Load state from URL on first render
-useEffect(() => {
-  const p = new URLSearchParams(window.location.search);
-
-  const c = p.get("city")?.trim();
-
-  const tRaw = p.get("time")?.toLowerCase();
-  const bRaw = p.get("budget")?.toLowerCase();
-  const mRaw = p.get("mood")?.toLowerCase();
-
-  const indoor = p.get("indoor");
-  const outdoor = p.get("outdoor");
-
-  if (c) setCity(c);
-
-  if (tRaw === "tonight" || tRaw === "halfday" || tRaw === "fullday") {
-    setTimeWindow(tRaw as TimeWindow);
-  }
-
-  if (bRaw === "low" || bRaw === "medium" || bRaw === "high") {
-    setBudget(bRaw as Budget);
-  }
-
-  if (mRaw === "cozy" || mRaw === "active" || mRaw === "romantic" || mRaw === "fun" || mRaw === "chill") {
-    setMood(mRaw as Mood);
-  }
-
-  if (indoor === "0") setIndoorsOk(false);
-  if (outdoor === "0") setOutdoorsOk(false);
-}, []);
-
-useEffect(() => {
-  if (didAutoGenerate.current) return;
-
-  // Vänta tills vi har en pool (candidates bygger på state som kan komma från query params)
-  const pool = candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase);
-  if (!pool.length) return;
-
-  didAutoGenerate.current = true;
-  setCurrent(pickOne(pool));
-  setCardNonce((n) => n + 1);
-}, [candidates, useCase]);
-
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50">
@@ -294,20 +281,20 @@ useEffect(() => {
             >
               Give me an idea
             </button>
-<button
-  onClick={generate}
-  disabled={!current}
-  className={[
-    "group inline-flex items-center gap-2 rounded-xl border px-4 py-2 font-medium transition",
-    !current
-      ? "cursor-not-allowed border-zinc-800 text-zinc-500"
-      : "border-zinc-700 text-zinc-50 hover:bg-zinc-900",
-  ].join(" ")}
->
-  <ShuffleIcon className="h-4 w-4 transition-transform group-hover:rotate-180" />
-  Shuffle
-</button>
 
+            <button
+              onClick={generate}
+              disabled={!current}
+              className={[
+                "group inline-flex items-center gap-2 rounded-xl border px-4 py-2 font-medium transition",
+                !current
+                  ? "cursor-not-allowed border-zinc-800 text-zinc-500"
+                  : "border-zinc-700 text-zinc-50 hover:bg-zinc-900",
+              ].join(" ")}
+            >
+              <ShuffleIcon className="h-4 w-4 transition-transform group-hover:rotate-180" />
+              Shuffle
+            </button>
 
             <button
               onClick={share}
@@ -321,9 +308,9 @@ useEffect(() => {
         <section className="mt-6">
           {current ? (
             <div
-  key={`${current.id}-${cardNonce}`}
-  className="igp-fade-up rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6"
->
+              key={`${current.id}-${cardNonce}`}
+              className="igp-fade-up rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6"
+            >
               <h2 className="text-2xl font-semibold">{current.title}</h2>
               <p className="mt-2 text-zinc-200">{current.description}</p>
 
@@ -336,9 +323,7 @@ useEffect(() => {
                 </ol>
               </div>
 
-              <div className="mt-6 text-sm text-zinc-400">
-                Tip: share this link to keep your exact settings.
-              </div>
+              <div className="mt-6 text-sm text-zinc-400">Tip: share this link to keep your exact settings.</div>
             </div>
           ) : (
             <div className="rounded-2xl border border-dashed border-zinc-800 p-6 text-zinc-400">
@@ -362,6 +347,7 @@ function TopNav() {
     { href: "/solo", label: "Solo" },
     { href: "/family", label: "Family" },
     { href: "/tonight", label: "Tonight" },
+    { href: "/cities", label: "Cities" },
   ];
 
   return (
@@ -411,15 +397,9 @@ function Toggle({ checked, onClick, label }: { checked: boolean; onClick: () => 
       ].join(" ")}
     >
       <span className="inline-flex items-center gap-2">
-        <span
-          className={[
-            "inline-block h-2 w-2 rounded-full",
-            checked ? "bg-emerald-300" : "bg-zinc-600",
-          ].join(" ")}
-        />
+        <span className={["inline-block h-2 w-2 rounded-full", checked ? "bg-emerald-300" : "bg-zinc-600"].join(" ")} />
         {label}
       </span>
     </button>
   );
 }
-

@@ -75,3 +75,10 @@ export const SEED_CITIES = [
   // Oceania
   "sydney","melbourne","brisbane","perth","auckland",
 ] as const;
+
+export type CitySlug = (typeof SEED_CITIES)[number];
+
+export function titleizeCity(slug: string) {
+  const s = slug.replace(/-/g, " ");
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
