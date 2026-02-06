@@ -11,7 +11,7 @@ function normalizeCity(slug: string) {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
-export default function Page({ params }: Props) {
+export default function Page({ params }: { params: { city: string } }) {
   const city = normalizeCity(params.city);
 
   return (
@@ -32,6 +32,7 @@ export default function Page({ params }: Props) {
       >
         SERVER PARAM city: {params.city} → {city}
       </div>
+      <div>RAW: {JSON.stringify(params)}</div>
 
       <ClientPage city={city} />
     </div>
