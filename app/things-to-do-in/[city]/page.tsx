@@ -1,11 +1,8 @@
+import { headers } from "next/headers";
 import ClientPage from "./ClientPage";
-import { SEED_CITIES } from "@/lib/cities";
 
-export const dynamicParams = true; // tillåt även andra än listan (valfritt)
-
-type Props = {
-  params: { city: string };
-};
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function normalizeCity(slug: string) {
   const raw = decodeURIComponent(slug ?? "").trim();
@@ -13,14 +10,45 @@ function normalizeCity(slug: string) {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
-// ✅ Bygg statiska sidor för dina 150 städer
-export function generateStaticParams() {
-  return SEED_CITIES.map((city) => ({ city }));
+function getCityFromPathname(pathname: string) {
+  const parts = pathname.split("/").filter(Boolean);
+  const idx = parts.indexOf("things-to-do-in");
+  const slug = idx >= 0 ? parts[idx + 1] : "";
+  return slug || "stockholm";
 }
 
-export function generateMetadata({ params }: Props) {
-  const cityTitle = normalizeCity(params.city);
-  const url = `https://igotnoplans.com/things-to-do-in/${params.city}`;
+function safePathFromHeaders(h: Headers): string {
+  // Försök få pathname från headers (varierar mellan miljöer)
+  const path =
+    h.get("x-invoke-path") ??
+    h.get("x-matched-path") ??
+    h.get("x-original-uri") ??
+    h.get("x-rewrite-url") ??
+    "";
+
+  if (path && path.startsWith("/")) return path;
+
+  const referer = h.get("referer") ?? "";
+  if (referer) {
+    try {
+      return new URL(referer).pathname;
+    } catch {}
+  }
+
+  return "/things-to-do-in/stockholm";
+}
+
+export async function generateMetadata() {
+  const h = await headers();
+
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "igotnoplans.com";
+  const proto = h.get("x-forwarded-proto") ?? "https";
+
+  const pathname = safePathFromHeaders(h as unknown as Headers);
+  const citySlug = getCityFromPathname(pathname);
+  const cityTitle = normalizeCity(citySlug);
+
+  const url = `${proto}://${host}/things-to-do-in/${citySlug}`;
 
   return {
     title: `Things to do in ${cityTitle} | I Got No Plans`,
@@ -41,7 +69,12 @@ export function generateMetadata({ params }: Props) {
   };
 }
 
-export default function Page({ params }: Props) {
-  const cityTitle = normalizeCity(params.city);
+export default async function Page() {
+  const h = await headers();
+  const pathname = safePathFromHeaders(h as unknown as Headers);
+
+  const citySlug = getCityFromPathname(pathname);
+  const cityTitle = normalizeCity(citySlug);
+
   return <ClientPage city={cityTitle} />;
 }

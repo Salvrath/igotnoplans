@@ -1,5 +1,4 @@
 "use client";
-
 import IdeaGenerator from "@/app/components/IdeaGenerator";
 
 export default function ClientPage({ city }: { city: string }) {
