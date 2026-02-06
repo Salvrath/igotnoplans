@@ -1,44 +1,29 @@
-import type { MetadataRoute } from "next";
+import { SEED_CITIES } from "@/lib/cities";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
+export default function sitemap() {
+  const baseUrl = "https://igotnoplans.com";
+  const now = new Date().toISOString();
 
-  return [
-    {
-      url: "https://igotnoplans.com",
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 1,
-    },
-    {
-      url: "https://igotnoplans.com/tonight",
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: "https://igotnoplans.com/date-ideas",
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-  url: "https://igotnoplans.com/friends",
-  lastModified: now,
-  changeFrequency: "weekly",
-  priority: 0.9,
-},
-{
-  url: "https://igotnoplans.com/solo",
-  lastModified: now,
-  changeFrequency: "weekly",
-  priority: 0.9,
-},
-{
-  url: "https://igotnoplans.com/family",
-  lastModified: now,
-  changeFrequency: "weekly",
-  priority: 0.9,
-},
-  ];
+  const staticRoutes = [
+    "",
+    "/date-ideas",
+    "/friends",
+    "/solo",
+    "/family",
+    "/tonight",
+  ].map((p) => ({
+    url: `${baseUrl}${p}`,
+    lastModified: now,
+    changeFrequency: "weekly" as const,
+    priority: p === "" ? 1 : 0.8,
+  }));
+
+  const cityRoutes = SEED_CITIES.map((city) => ({
+    url: `${baseUrl}/things-to-do-in/${city}`,
+    lastModified: now,
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }));
+
+  return [...staticRoutes, ...cityRoutes];
 }

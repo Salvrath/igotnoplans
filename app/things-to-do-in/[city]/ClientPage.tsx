@@ -1,12 +1,25 @@
 "use client";
 
 import IdeaGenerator from "@/app/components/IdeaGenerator";
+import { useParams } from "next/navigation";
 
-export default function ClientPage({ city }: { city: string }) {
-  const cityTitle = city.charAt(0).toUpperCase() + city.slice(1);
+function normalizeCity(slug?: string) {
+  const raw = decodeURIComponent(slug ?? "").trim();
+  if (!raw) return "Stockholm";
+  const spaced = raw.replace(/-/g, " ");
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+export default function ClientPage() {
+  const params = useParams();
+
+  const cityParam = params?.city;
+  const citySlug = Array.isArray(cityParam) ? cityParam[0] : cityParam; // ✅ handles string|string[]
+  const cityTitle = normalizeCity(typeof citySlug === "string" ? citySlug : "");
 
   return (
     <IdeaGenerator
+      key={citySlug ?? cityTitle} // ✅ forces remount when city changes
       useCase="date"
       headline={`Things to do in ${cityTitle}.`}
       subheadline={`No plans in ${cityTitle}? Get a solid idea and go.`}
