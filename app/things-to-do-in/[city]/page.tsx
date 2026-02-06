@@ -14,29 +14,30 @@ function getCityFromPathname(pathname: string) {
   const parts = pathname.split("/").filter(Boolean);
   const idx = parts.indexOf("things-to-do-in");
   const slug = idx >= 0 ? parts[idx + 1] : "";
-  return slug || "stockholm";
+  return !slug || slug.includes("[") ? "stockholm" : slug;
 }
 
 function safePathFromHeaders(h: Headers): string {
-  // Försök få pathname från headers (varierar mellan miljöer)
-  const path =
-    h.get("x-invoke-path") ??
-    h.get("x-matched-path") ??
-    h.get("x-original-uri") ??
-    h.get("x-rewrite-url") ??
-    "";
+  const candidates = [
+    h.get("x-vercel-path"),
+    h.get("x-original-uri"),
+    h.get("x-forwarded-uri"),
+    h.get("x-rewrite-url"),
+    h.get("x-invoke-path"),
+    // OBS: x-matched-path är OFTA "/things-to-do-in/[city]" => ska vara sist
+    h.get("x-matched-path"),
+  ].filter(Boolean) as string[];
 
-  if (path && path.startsWith("/")) return path;
-
-  const referer = h.get("referer") ?? "";
-  if (referer) {
-    try {
-      return new URL(referer).pathname;
-    } catch {}
+  for (const p of candidates) {
+    if (!p.startsWith("/")) continue;
+    // ignorera route-patterns som "/things-to-do-in/[city]"
+    if (p.includes("[") || p.includes("]")) continue;
+    return p;
   }
 
   return "/things-to-do-in/stockholm";
 }
+
 
 export async function generateMetadata() {
   const h = await headers();
