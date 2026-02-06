@@ -1,14 +1,10 @@
-"use client";
-import IdeaGenerator from "@/app/components/IdeaGenerator";
+import ClientPage from "./ClientPage";
 
-export default function ClientPage({ city }: { city: string }) {
-  return (
-    <IdeaGenerator
-      useCase="date"
-      headline={`Things to do in ${city}.`}
-      subheadline={`No plans in ${city}? Get a solid idea and go.`}
-      shareText={`No plans in ${city}? Try this:`}
-      defaultCity={city}
-    />
-  );
+export const metadata = {
+  title: "Things to do | I Got No Plans",
+  description: "No plans? Get instant ideas for dates, friends, solo and family.",
+};
+
+export default function Page() {
+  return <ClientPage />;
 }
