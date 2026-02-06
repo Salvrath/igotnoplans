@@ -13,10 +13,9 @@ function normalizeCity(slug: string) {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
-export function generateMetadata({ params }: Props) {
+export async function generateMetadata({ params }: Props) {
   const cityTitle = normalizeCity(params.city);
-  const slug = params.city ?? "stockholm";
-  const url = `https://igotnoplans.com/things-to-do-in/${slug}`;
+  const url = `https://igotnoplans.com/things-to-do-in/${params.city}`;
 
   return {
     title: `Things to do in ${cityTitle} | I Got No Plans`,
