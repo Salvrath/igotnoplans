@@ -86,7 +86,14 @@ function parseBudget(v?: string | null): Budget | null {
 
 function parseMood(v?: string | null): Mood | null {
   const m = (v ?? "").toLowerCase();
-  if (m === "cozy" || m === "active" || m === "romantic" || m === "fun" || m === "chill") return m as Mood;
+  if (
+    m === "cozy" ||
+    m === "active" ||
+    m === "romantic" ||
+    m === "fun" ||
+    m === "chill"
+  )
+    return m as Mood;
   return null;
 }
 
@@ -118,27 +125,16 @@ function safeInitState(
   const indoorRaw = p.get("indoor");
   const outdoorRaw = p.get("outdoor");
 
-  const indoorsFromUrl = indoorRaw === null ? null : indoorRaw === "0" ? false : true;
-  const outdoorsFromUrl = outdoorRaw === null ? null : outdoorRaw === "0" ? false : true;
+  const indoorsFromUrl =
+    indoorRaw === null ? null : indoorRaw === "0" ? false : true;
+  const outdoorsFromUrl =
+    outdoorRaw === null ? null : outdoorRaw === "0" ? false : true;
 
-  // Merge order:
-  // 1) presetDefaults
-  // 2) URL params (override)
-  // 3) fallbacks
-  const timeWindow =
-    timeFromUrl ?? presetDefaults?.timeWindow ?? "tonight";
-
-  const budget =
-    budgetFromUrl ?? presetDefaults?.budget ?? "medium";
-
-  const mood =
-    moodFromUrl ?? presetDefaults?.mood ?? defaultMood;
-
-  const indoorsOk =
-    indoorsFromUrl ?? presetDefaults?.indoorsOk ?? true;
-
-  const outdoorsOk =
-    outdoorsFromUrl ?? presetDefaults?.outdoorsOk ?? true;
+  const timeWindow = timeFromUrl ?? presetDefaults?.timeWindow ?? "tonight";
+  const budget = budgetFromUrl ?? presetDefaults?.budget ?? "medium";
+  const mood = moodFromUrl ?? presetDefaults?.mood ?? defaultMood;
+  const indoorsOk = indoorsFromUrl ?? presetDefaults?.indoorsOk ?? true;
+  const outdoorsOk = outdoorsFromUrl ?? presetDefaults?.outdoorsOk ?? true;
 
   return {
     city: c ?? defaultCity ?? "",
@@ -228,22 +224,26 @@ export default function IdeaGenerator({
 
   const [cardNonce, setCardNonce] = useState(0);
 
-  // Start: välj en idé från candidates
   const [current, setCurrent] = useState<Idea | null>(() => {
-    const pool = (candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase)) as Idea[];
+    const pool = (candidates.length
+      ? candidates
+      : IDEAS.filter((i) => i.useCase === useCase)) as Idea[];
     return pool.length ? pickOne(pool) : null;
   });
 
-  // När filters ändras: generera en ny idé automatiskt (så card matchar current filters)
   useEffect(() => {
-    const pool = candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase);
+    const pool = candidates.length
+      ? candidates
+      : IDEAS.filter((i) => i.useCase === useCase);
     setCurrent(pool.length ? pickOne(pool) : null);
     setCardNonce((n) => n + 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [useCase, timeWindow, budget, mood, indoorsOk, outdoorsOk]);
 
   function generate() {
-    const pool = candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase);
+    const pool = candidates.length
+      ? candidates
+      : IDEAS.filter((i) => i.useCase === useCase);
     setCurrent(pool.length ? pickOne(pool) : null);
     setCardNonce((n) => n + 1);
   }
@@ -264,7 +264,11 @@ export default function IdeaGenerator({
     const url = getShareUrl();
     try {
       if (navigator.share) {
-        await navigator.share({ title: "I Got No Plans", text: shareText, url });
+        await navigator.share({
+          title: "I Got No Plans",
+          text: shareText,
+          url,
+        });
         return;
       }
     } catch {
@@ -281,7 +285,9 @@ export default function IdeaGenerator({
 
         <header className="mb-8">
           <div className="text-sm text-zinc-400">igotnoplans.com</div>
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight">{headline}</h1>
+          <h1 className="mt-2 text-4xl font-semibold tracking-tight">
+            {headline}
+          </h1>
           <p className="mt-3 text-zinc-300">{subheadline}</p>
         </header>
 
@@ -336,12 +342,21 @@ export default function IdeaGenerator({
           </div>
 
           <div className="mt-4 flex flex-wrap gap-3">
-            <Toggle checked={indoorsOk} onClick={() => setIndoorsOk((s) => !s)} label="Indoor OK" />
-            <Toggle checked={outdoorsOk} onClick={() => setOutdoorsOk((s) => !s)} label="Outdoor OK" />
+            <Toggle
+              checked={indoorsOk}
+              onClick={() => setIndoorsOk((s) => !s)}
+              label="Indoor OK"
+            />
+            <Toggle
+              checked={outdoorsOk}
+              onClick={() => setOutdoorsOk((s) => !s)}
+              label="Outdoor OK"
+            />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <button
+              type="button"
               onClick={generate}
               className="rounded-xl bg-zinc-50 px-4 py-2 font-medium text-zinc-950 hover:bg-zinc-200"
             >
@@ -349,6 +364,7 @@ export default function IdeaGenerator({
             </button>
 
             <button
+              type="button"
               onClick={generate}
               disabled={!current}
               className={[
@@ -359,10 +375,11 @@ export default function IdeaGenerator({
               ].join(" ")}
             >
               <ShuffleIcon className="h-4 w-4 transition-transform group-hover:rotate-180" />
-              Shuffle
+              Generate another
             </button>
 
             <button
+              type="button"
               onClick={share}
               className="rounded-xl border border-zinc-700 bg-transparent px-4 py-2 font-medium text-zinc-50 hover:bg-zinc-900"
             >
@@ -381,7 +398,9 @@ export default function IdeaGenerator({
               <p className="mt-2 text-zinc-200">{current.description}</p>
 
               <div className="mt-5">
-                <div className="text-sm font-medium text-zinc-300">How to do it</div>
+                <div className="text-sm font-medium text-zinc-300">
+                  How to do it
+                </div>
                 <ol className="mt-2 list-decimal space-y-1 pl-5 text-zinc-200">
                   {current.steps.map((s, idx) => (
                     <li key={idx}>{s}</li>
@@ -389,16 +408,21 @@ export default function IdeaGenerator({
                 </ol>
               </div>
 
-              <div className="mt-6 text-sm text-zinc-400">Tip: share this link to keep your exact settings.</div>
+              <div className="mt-6 text-sm text-zinc-400">
+                Tip: share this link to keep your exact settings.
+              </div>
             </div>
           ) : (
             <div className="rounded-2xl border border-dashed border-zinc-800 p-6 text-zinc-400">
-              Click <span className="text-zinc-200">“Give me an idea”</span> to get started.
+              Click <span className="text-zinc-200">“Give me an idea”</span> to
+              get started.
             </div>
           )}
         </section>
 
-        <footer className="mt-10 text-xs text-zinc-500">© {new Date().getFullYear()} igotnoplans.com</footer>
+        <footer className="mt-10 text-xs text-zinc-500">
+          © {new Date().getFullYear()} igotnoplans.com
+        </footer>
       </div>
     </main>
   );
@@ -439,7 +463,13 @@ function TopNav() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <label className="block">
       <div className="mb-1 text-sm text-zinc-300">{label}</div>
@@ -448,7 +478,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Toggle({ checked, onClick, label }: { checked: boolean; onClick: () => void; label: string }) {
+function Toggle({
+  checked,
+  onClick,
+  label,
+}: {
+  checked: boolean;
+  onClick: () => void;
+  label: string;
+}) {
   return (
     <button
       type="button"
@@ -463,7 +501,12 @@ function Toggle({ checked, onClick, label }: { checked: boolean; onClick: () => 
       ].join(" ")}
     >
       <span className="inline-flex items-center gap-2">
-        <span className={["inline-block h-2 w-2 rounded-full", checked ? "bg-emerald-300" : "bg-zinc-600"].join(" ")} />
+        <span
+          className={[
+            "inline-block h-2 w-2 rounded-full",
+            checked ? "bg-emerald-300" : "bg-zinc-600",
+          ].join(" ")}
+        />
         {label}
       </span>
     </button>
