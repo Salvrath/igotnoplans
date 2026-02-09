@@ -169,6 +169,13 @@ export default function IdeaGenerator({
   const [mood, setMood] = useState<Mood>(init.mood);
   const [indoorsOk, setIndoorsOk] = useState(init.indoorsOk);
   const [outdoorsOk, setOutdoorsOk] = useState(init.outdoorsOk);
+  const [toast, setToast] = useState<string | null>(null);
+
+function showToast(msg: string) {
+  setToast(msg);
+  window.clearTimeout((showToast as any)._t);
+  (showToast as any)._t = window.setTimeout(() => setToast(null), 2200);
+}
 
   const MIN_POOL = 20;
 
@@ -277,8 +284,8 @@ export default function IdeaGenerator({
     } catch {
       // ignore cancel
     }
-    await navigator.clipboard.writeText(url);
-    alert("Link copied!");
+await navigator.clipboard.writeText(url);
+showToast("Link copied!");
   }
 
   return (
@@ -411,6 +418,14 @@ export default function IdeaGenerator({
         </section>
 
         {below ? <div className="mt-6 space-y-6">{below}</div> : null}
+
+        {toast ? (
+  <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2">
+    <div className="rounded-full border border-zinc-800 bg-zinc-950/90 px-4 py-2 text-sm text-zinc-100 shadow-lg">
+      {toast}
+    </div>
+  </div>
+) : null}
 
         <footer className="mt-10 text-xs text-zinc-500">
           © {new Date().getFullYear()} igotnoplans.com
