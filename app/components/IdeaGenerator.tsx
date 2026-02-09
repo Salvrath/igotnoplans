@@ -28,6 +28,7 @@ type Props = {
   shareText: string;
   defaultCity?: string;
   presetDefaults?: PresetDefaults;
+  below?: React.ReactNode; // ✅ NY: server-renderade block under generatorn
 };
 
 function ShuffleIcon({ className = "" }: { className?: string }) {
@@ -86,14 +87,9 @@ function parseBudget(v?: string | null): Budget | null {
 
 function parseMood(v?: string | null): Mood | null {
   const m = (v ?? "").toLowerCase();
-  if (
-    m === "cozy" ||
-    m === "active" ||
-    m === "romantic" ||
-    m === "fun" ||
-    m === "chill"
-  )
+  if (m === "cozy" || m === "active" || m === "romantic" || m === "fun" || m === "chill") {
     return m as Mood;
+  }
   return null;
 }
 
@@ -102,7 +98,6 @@ function safeInitState(
   defaultMood: Mood,
   presetDefaults?: PresetDefaults
 ): InitState {
-  // Server-säker fallback
   if (typeof window === "undefined") {
     return {
       city: defaultCity ?? "",
@@ -116,7 +111,6 @@ function safeInitState(
 
   const p = new URLSearchParams(window.location.search);
 
-  // URL params (ska vinna över preset)
   const c = p.get("city")?.trim();
   const timeFromUrl = parseTimeWindow(p.get("time"));
   const budgetFromUrl = parseBudget(p.get("budget"));
@@ -125,10 +119,8 @@ function safeInitState(
   const indoorRaw = p.get("indoor");
   const outdoorRaw = p.get("outdoor");
 
-  const indoorsFromUrl =
-    indoorRaw === null ? null : indoorRaw === "0" ? false : true;
-  const outdoorsFromUrl =
-    outdoorRaw === null ? null : outdoorRaw === "0" ? false : true;
+  const indoorsFromUrl = indoorRaw === null ? null : indoorRaw === "0" ? false : true;
+  const outdoorsFromUrl = outdoorRaw === null ? null : outdoorRaw === "0" ? false : true;
 
   const timeWindow = timeFromUrl ?? presetDefaults?.timeWindow ?? "tonight";
   const budget = budgetFromUrl ?? presetDefaults?.budget ?? "medium";
@@ -153,10 +145,10 @@ export default function IdeaGenerator({
   shareText,
   defaultCity,
   presetDefaults,
+  below,
 }: Props) {
   const defaultMood = getDefaultMood(useCase);
 
-  // Init från preset + URL + defaultCity
   const init = useMemo(
     () => safeInitState(defaultCity, defaultMood, presetDefaults),
     [defaultCity, defaultMood, presetDefaults]
@@ -198,9 +190,7 @@ export default function IdeaGenerator({
     }
 
     function relaxBudget() {
-      return IDEAS.filter((i) => i.useCase === useCase).filter((i) =>
-        i.timeWindows.includes(timeWindow)
-      );
+      return IDEAS.filter((i) => i.useCase === useCase).filter((i) => i.timeWindows.includes(timeWindow));
     }
 
     function relaxTime() {
@@ -225,25 +215,19 @@ export default function IdeaGenerator({
   const [cardNonce, setCardNonce] = useState(0);
 
   const [current, setCurrent] = useState<Idea | null>(() => {
-    const pool = (candidates.length
-      ? candidates
-      : IDEAS.filter((i) => i.useCase === useCase)) as Idea[];
+    const pool = (candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase)) as Idea[];
     return pool.length ? pickOne(pool) : null;
   });
 
   useEffect(() => {
-    const pool = candidates.length
-      ? candidates
-      : IDEAS.filter((i) => i.useCase === useCase);
+    const pool = candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase);
     setCurrent(pool.length ? pickOne(pool) : null);
     setCardNonce((n) => n + 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [useCase, timeWindow, budget, mood, indoorsOk, outdoorsOk]);
 
   function generate() {
-    const pool = candidates.length
-      ? candidates
-      : IDEAS.filter((i) => i.useCase === useCase);
+    const pool = candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase);
     setCurrent(pool.length ? pickOne(pool) : null);
     setCardNonce((n) => n + 1);
   }
@@ -264,11 +248,7 @@ export default function IdeaGenerator({
     const url = getShareUrl();
     try {
       if (navigator.share) {
-        await navigator.share({
-          title: "I Got No Plans",
-          text: shareText,
-          url,
-        });
+        await navigator.share({ title: "I Got No Plans", text: shareText, url });
         return;
       }
     } catch {
@@ -280,14 +260,12 @@ export default function IdeaGenerator({
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50">
-      <div className="mx-auto max-w-3xl px-4 py-10">
+      <div className="mx-auto max-w-3xl px-4 py-8">
         <TopNav />
 
-        <header className="mb-8">
+        <header className="mb-7">
           <div className="text-sm text-zinc-400">igotnoplans.com</div>
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight">
-            {headline}
-          </h1>
+          <h1 className="mt-2 text-4xl font-semibold tracking-tight">{headline}</h1>
           <p className="mt-3 text-zinc-300">{subheadline}</p>
         </header>
 
@@ -342,16 +320,8 @@ export default function IdeaGenerator({
           </div>
 
           <div className="mt-4 flex flex-wrap gap-3">
-            <Toggle
-              checked={indoorsOk}
-              onClick={() => setIndoorsOk((s) => !s)}
-              label="Indoor OK"
-            />
-            <Toggle
-              checked={outdoorsOk}
-              onClick={() => setOutdoorsOk((s) => !s)}
-              label="Outdoor OK"
-            />
+            <Toggle checked={indoorsOk} onClick={() => setIndoorsOk((s) => !s)} label="Indoor OK" />
+            <Toggle checked={outdoorsOk} onClick={() => setOutdoorsOk((s) => !s)} label="Outdoor OK" />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -398,9 +368,7 @@ export default function IdeaGenerator({
               <p className="mt-2 text-zinc-200">{current.description}</p>
 
               <div className="mt-5">
-                <div className="text-sm font-medium text-zinc-300">
-                  How to do it
-                </div>
+                <div className="text-sm font-medium text-zinc-300">How to do it</div>
                 <ol className="mt-2 list-decimal space-y-1 pl-5 text-zinc-200">
                   {current.steps.map((s, idx) => (
                     <li key={idx}>{s}</li>
@@ -414,11 +382,13 @@ export default function IdeaGenerator({
             </div>
           ) : (
             <div className="rounded-2xl border border-dashed border-zinc-800 p-6 text-zinc-400">
-              Click <span className="text-zinc-200">“Give me an idea”</span> to
-              get started.
+              Click <span className="text-zinc-200">“Give me an idea”</span> to get started.
             </div>
           )}
         </section>
+
+        {/* ✅ Server-renderade SEO-block hamnar här, i samma container */}
+        {below ? <div className="mt-6 space-y-6">{below}</div> : null}
 
         <footer className="mt-10 text-xs text-zinc-500">
           © {new Date().getFullYear()} igotnoplans.com
@@ -463,13 +433,7 @@ function TopNav() {
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
       <div className="mb-1 text-sm text-zinc-300">{label}</div>
@@ -478,15 +442,7 @@ function Field({
   );
 }
 
-function Toggle({
-  checked,
-  onClick,
-  label,
-}: {
-  checked: boolean;
-  onClick: () => void;
-  label: string;
-}) {
+function Toggle({ checked, onClick, label }: { checked: boolean; onClick: () => void; label: string }) {
   return (
     <button
       type="button"
@@ -501,12 +457,7 @@ function Toggle({
       ].join(" ")}
     >
       <span className="inline-flex items-center gap-2">
-        <span
-          className={[
-            "inline-block h-2 w-2 rounded-full",
-            checked ? "bg-emerald-300" : "bg-zinc-600",
-          ].join(" ")}
-        />
+        <span className={["inline-block h-2 w-2 rounded-full", checked ? "bg-emerald-300" : "bg-zinc-600"].join(" ")} />
         {label}
       </span>
     </button>

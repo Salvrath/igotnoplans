@@ -6,7 +6,6 @@ import { notFound } from "next/navigation";
 import PopularSearches from "@/app/components/PopularSearches";
 import CityPresets from "@/app/components/CityPresets";
 
-
 type Params = { city?: string };
 type Props = { params: Params | Promise<Params> };
 
@@ -47,8 +46,6 @@ export async function generateMetadata({ params }: Props) {
   };
 }
 
-
-
 export default async function Page({ params }: Props) {
   const p = await unwrapParams(params);
   const citySlug = getCitySlug(p.city);
@@ -57,24 +54,14 @@ export default async function Page({ params }: Props) {
   const nearby = getNearbyCities(citySlug, 8);
 
   return (
-    <>
-      <ClientPage />
-      <div className="mx-auto max-w-3xl px-4 pb-10">
-<ClientPage />
-
-<div className="mx-auto max-w-3xl px-4 pb-10">
-  <PopularSearches
-    citySlug={citySlug}
-    cityName={cityTitle}
-  />
-<CityPresets citySlug={citySlug} cityName={cityTitle} limit={10} />
-  <NearbyCities
-    currentCityName={cityTitle}
-    items={nearby}
-  />
-</div>
-
-      </div>
-    </>
+    <ClientPage
+      below={
+        <>
+          <PopularSearches citySlug={citySlug} cityName={cityTitle} />
+          <CityPresets citySlug={citySlug} cityName={cityTitle} limit={10} />
+          <NearbyCities currentCityName={cityTitle} items={nearby} />
+        </>
+      }
+    />
   );
 }

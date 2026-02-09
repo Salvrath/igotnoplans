@@ -8,7 +8,7 @@ const IdeaGenerator = dynamic(() => import("@/app/components/IdeaGenerator"), {
   ssr: false,
 });
 
-export default function ClientPage() {
+export default function ClientPage({ below }: { below?: React.ReactNode }) {
   const params = useParams<{ city?: string | string[] }>();
 
   const cityParam = params?.city;
@@ -25,6 +25,7 @@ export default function ClientPage() {
       subheadline={`No plans in ${cityTitle}? Get a solid idea and go.`}
       shareText={`No plans in ${cityTitle}? Try this:`}
       defaultCity={cityTitle}
+      below={below}
     />
   );
 }
