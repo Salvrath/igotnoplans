@@ -4,6 +4,8 @@ import { CITY_GEO, SEED_CITIES, type CitySlug } from "@/lib/cities";
 import { getNearbyCities } from "@/lib/nearby";
 import { notFound } from "next/navigation";
 import PopularSearches from "@/app/components/PopularSearches";
+import CityPresets from "@/app/components/CityPresets";
+
 
 type Params = { city?: string };
 type Props = { params: Params | Promise<Params> };
@@ -65,7 +67,7 @@ export default async function Page({ params }: Props) {
     citySlug={citySlug}
     cityName={cityTitle}
   />
-
+<CityPresets citySlug={citySlug} cityName={cityTitle} limit={10} />
   <NearbyCities
     currentCityName={cityTitle}
     items={nearby}

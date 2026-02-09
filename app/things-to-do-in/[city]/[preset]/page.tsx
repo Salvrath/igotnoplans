@@ -5,6 +5,7 @@ import { CITY_GEO, SEED_CITIES, type CitySlug } from "@/lib/cities";
 import { getNearbyCities } from "@/lib/nearby";
 import { PRESETS, isPresetSlug, type PresetSlug } from "@/lib/presets";
 import { notFound } from "next/navigation";
+import CityPresets from "@/app/components/CityPresets";
 
 type Params = { city?: string; preset?: string };
 type Props = { params: Params | Promise<Params> };
@@ -71,6 +72,7 @@ export default async function Page({ params }: Props) {
       <ClientPresetPage />
       <div className="mx-auto max-w-3xl px-4 pb-10">
         <PopularSearches citySlug={citySlug} cityName={cityTitle} />
+        <CityPresets citySlug={citySlug} cityName={cityTitle} limit={10} />
         <NearbyCities currentCityName={cityTitle} items={nearby} />
       </div>
     </>
