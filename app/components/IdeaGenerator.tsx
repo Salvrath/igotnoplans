@@ -87,13 +87,7 @@ function parseBudget(v?: string | null): Budget | null {
 
 function parseMood(v?: string | null): Mood | null {
   const m = (v ?? "").toLowerCase();
-  if (
-    m === "cozy" ||
-    m === "active" ||
-    m === "romantic" ||
-    m === "fun" ||
-    m === "chill"
-  ) {
+  if (m === "cozy" || m === "active" || m === "romantic" || m === "fun" || m === "chill") {
     return m as Mood;
   }
   return null;
@@ -104,7 +98,6 @@ function safeInitState(
   defaultMood: Mood,
   presetDefaults?: PresetDefaults
 ): InitState {
-  // Server-safe: inga window-anrop
   if (typeof window === "undefined") {
     return {
       city: defaultCity ?? "",
@@ -126,10 +119,8 @@ function safeInitState(
   const indoorRaw = p.get("indoor");
   const outdoorRaw = p.get("outdoor");
 
-  const indoorsFromUrl =
-    indoorRaw === null ? null : indoorRaw === "0" ? false : true;
-  const outdoorsFromUrl =
-    outdoorRaw === null ? null : outdoorRaw === "0" ? false : true;
+  const indoorsFromUrl = indoorRaw === null ? null : indoorRaw === "0" ? false : true;
+  const outdoorsFromUrl = outdoorRaw === null ? null : outdoorRaw === "0" ? false : true;
 
   const timeWindow = timeFromUrl ?? presetDefaults?.timeWindow ?? "tonight";
   const budget = budgetFromUrl ?? presetDefaults?.budget ?? "medium";
@@ -169,14 +160,15 @@ export default function IdeaGenerator({
   const [mood, setMood] = useState<Mood>(init.mood);
   const [indoorsOk, setIndoorsOk] = useState(init.indoorsOk);
   const [outdoorsOk, setOutdoorsOk] = useState(init.outdoorsOk);
+
   const [toast, setToast] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-function showToast(msg: string) {
-  setToast(msg);
-  window.clearTimeout((showToast as any)._t);
-  (showToast as any)._t = window.setTimeout(() => setToast(null), 2200);
-}
+  function showToast(msg: string) {
+    setToast(msg);
+    window.clearTimeout((showToast as any)._t);
+    (showToast as any)._t = window.setTimeout(() => setToast(null), 2200);
+  }
 
   const MIN_POOL = 20;
 
@@ -193,6 +185,7 @@ function showToast(msg: string) {
         });
     }
 
+    // ignore toggles from here on
     function relaxPlace() {
       return IDEAS.filter((i) => i.useCase === useCase)
         .filter((i) => i.timeWindows.includes(timeWindow))
@@ -233,45 +226,40 @@ function showToast(msg: string) {
 
   const [cardNonce, setCardNonce] = useState(0);
 
-  // ✅ Hydration-safe: ingen random på första render (server + client matchar)
+  // Hydration-safe: render null first, then pick after mount
   const [current, setCurrent] = useState<Idea | null>(null);
-
-  // ✅ Markera när vi är på klienten (efter hydration)
   const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => setMounted(true), []);
 
-  // ✅ Auto-generate efter mount + när filter ändras (client-only)
+  // After mount + when filters change: always pick something (fallbacks)
   useEffect(() => {
     if (!mounted) return;
 
-    const pool = candidates.length
-      ? (candidates as Idea[])
-      : (IDEAS.filter((i) => i.useCase === useCase) as Idea[]);
+    let pool: Idea[] = (candidates as Idea[]) ?? [];
+
+    if (!pool.length) pool = IDEAS.filter((i) => i.useCase === useCase) as Idea[];
+    if (!pool.length) pool = IDEAS as Idea[];
 
     setCurrent(pool.length ? pickOne(pool) : null);
     setCardNonce((n) => n + 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted, useCase, timeWindow, budget, mood, indoorsOk, outdoorsOk]);
+  }, [mounted, useCase, timeWindow, budget, mood, indoorsOk, outdoorsOk, candidates]);
 
-function generate() {
-  if (isGenerating) return;
+  function generate() {
+    if (isGenerating) return;
 
-  setIsGenerating(true);
+    setIsGenerating(true);
 
-  // Micro-delay för “thinking”-känsla
-  window.setTimeout(() => {
-    const pool = candidates.length
-      ? candidates
-      : IDEAS.filter((i) => i.useCase === useCase);
+    window.setTimeout(() => {
+      let pool: Idea[] = (candidates as Idea[]) ?? [];
+      if (!pool.length) pool = IDEAS.filter((i) => i.useCase === useCase) as Idea[];
+      if (!pool.length) pool = IDEAS as Idea[];
 
-    setCurrent(pool.length ? pickOne(pool) : null);
-    setCardNonce((n) => n + 1);
-    setIsGenerating(false);
-  }, 450);
-}
-
+      setCurrent(pool.length ? pickOne(pool) : null);
+      setCardNonce((n) => n + 1);
+      setIsGenerating(false);
+    }, 450);
+  }
 
   function getShareUrl() {
     const params = new URLSearchParams({
@@ -295,8 +283,8 @@ function generate() {
     } catch {
       // ignore cancel
     }
-await navigator.clipboard.writeText(url);
-showToast("Link copied!");
+    await navigator.clipboard.writeText(url);
+    showToast("Link copied!");
   }
 
   return (
@@ -366,41 +354,39 @@ showToast("Link copied!");
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-<button
-  type="button"
-  onClick={generate}
-  disabled={isGenerating}
-  className={[
-    "rounded-xl px-4 py-2 font-medium transition",
-    isGenerating
-      ? "cursor-not-allowed bg-zinc-300 text-zinc-600"
-      : "bg-zinc-50 text-zinc-950 hover:bg-zinc-200",
-  ].join(" ")}
->
-  {isGenerating ? "Thinking…" : "Give me an idea"}
-</button>
+            <button
+              type="button"
+              onClick={generate}
+              disabled={isGenerating}
+              className={[
+                "rounded-xl px-4 py-2 font-medium transition",
+                isGenerating
+                  ? "cursor-not-allowed bg-zinc-300 text-zinc-600"
+                  : "bg-zinc-50 text-zinc-950 hover:bg-zinc-200",
+              ].join(" ")}
+            >
+              {isGenerating ? "Thinking…" : "Give me an idea"}
+            </button>
 
-
-<button
-  type="button"
-  onClick={generate}
-  disabled={!current || isGenerating}
-  className={[
-    "group inline-flex items-center gap-2 rounded-xl border px-4 py-2 font-medium transition",
-    !current || isGenerating
-      ? "cursor-not-allowed border-zinc-800 text-zinc-500"
-      : "border-zinc-700 text-zinc-50 hover:bg-zinc-900",
-  ].join(" ")}
->
-  <ShuffleIcon
-    className={[
-      "h-4 w-4 transition-transform",
-      isGenerating ? "animate-spin" : "group-hover:rotate-180",
-    ].join(" ")}
-  />
-  {isGenerating ? "Thinking…" : "Generate another"}
-</button>
-
+            <button
+              type="button"
+              onClick={generate}
+              disabled={!current || isGenerating}
+              className={[
+                "group inline-flex items-center gap-2 rounded-xl border px-4 py-2 font-medium transition",
+                !current || isGenerating
+                  ? "cursor-not-allowed border-zinc-800 text-zinc-500"
+                  : "border-zinc-700 text-zinc-50 hover:bg-zinc-900",
+              ].join(" ")}
+            >
+              <ShuffleIcon
+                className={[
+                  "h-4 w-4 transition-transform",
+                  isGenerating ? "animate-spin" : "group-hover:rotate-180",
+                ].join(" ")}
+              />
+              {isGenerating ? "Thinking…" : "Generate another"}
+            </button>
 
             <button
               type="button"
@@ -419,6 +405,16 @@ showToast("Link copied!");
               className="igp-fade-up rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6"
             >
               <h2 className="text-2xl font-semibold">{current.title}</h2>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Pill>⏱ {labelTimeWindow(timeWindow)}</Pill>
+                <Pill>💸 {labelBudget(budget)}</Pill>
+                <Pill>
+                  {current.place === "indoors" ? "🏠" : current.place === "outdoors" ? "🌤" : "✨"}{" "}
+                  {labelPlace(current.place)}
+                </Pill>
+              </div>
+
               <p className="mt-2 text-zinc-200">{current.description}</p>
 
               <div className="mt-5">
@@ -430,9 +426,11 @@ showToast("Link copied!");
                 </ol>
               </div>
 
-              <div className="mt-6 text-sm text-zinc-400">
-                Tip: share this link to keep your exact settings.
-              </div>
+              <div className="mt-6 text-sm text-zinc-400">Tip: share this link to keep your exact settings.</div>
+
+              {process.env.NODE_ENV !== "production" ? (
+                <div className="mt-3 text-xs text-zinc-500">Pool size: {candidates.length}</div>
+              ) : null}
             </div>
           ) : (
             <div className="rounded-2xl border border-dashed border-zinc-800 p-6 text-zinc-400">
@@ -444,16 +442,14 @@ showToast("Link copied!");
         {below ? <div className="mt-6 space-y-6">{below}</div> : null}
 
         {toast ? (
-  <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2">
-    <div className="rounded-full border border-zinc-800 bg-zinc-950/90 px-4 py-2 text-sm text-zinc-100 shadow-lg">
-      {toast}
-    </div>
-  </div>
-) : null}
+          <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2">
+            <div className="rounded-full border border-zinc-800 bg-zinc-950/90 px-4 py-2 text-sm text-zinc-100 shadow-lg">
+              {toast}
+            </div>
+          </div>
+        ) : null}
 
-        <footer className="mt-10 text-xs text-zinc-500">
-          © {new Date().getFullYear()} igotnoplans.com
-        </footer>
+        <footer className="mt-10 text-xs text-zinc-500">© {new Date().getFullYear()} igotnoplans.com</footer>
       </div>
     </main>
   );
@@ -527,5 +523,31 @@ function Toggle({ checked, onClick, label }: { checked: boolean; onClick: () => 
         {label}
       </span>
     </button>
+  );
+}
+
+function labelTimeWindow(t: TimeWindow) {
+  if (t === "tonight") return "Tonight";
+  if (t === "halfday") return "Half day";
+  return "Full day";
+}
+
+function labelBudget(b: Budget) {
+  if (b === "low") return "Low budget";
+  if (b === "medium") return "Medium budget";
+  return "High budget";
+}
+
+function labelPlace(place?: string) {
+  if (place === "indoors") return "Indoor";
+  if (place === "outdoors") return "Outdoor";
+  return "Indoor/Outdoor";
+}
+
+function Pill({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded-full border border-zinc-800 bg-zinc-950/40 px-3 py-1 text-xs text-zinc-200">
+      {children}
+    </span>
   );
 }
