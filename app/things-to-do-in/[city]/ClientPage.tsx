@@ -1,12 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { getCityName } from "@/lib/cities";
 import { useParams } from "next/navigation";
-
-const IdeaGenerator = dynamic(() => import("@/app/components/IdeaGenerator"), {
-  ssr: false,
-});
+import IdeaGenerator from "@/app/components/IdeaGenerator";
+import { getCityName } from "@/lib/cities";
 
 export default function ClientPage({ below }: { below?: React.ReactNode }) {
   const params = useParams<{ city?: string | string[] }>();

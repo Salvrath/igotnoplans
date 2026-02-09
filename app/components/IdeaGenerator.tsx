@@ -28,7 +28,7 @@ type Props = {
   shareText: string;
   defaultCity?: string;
   presetDefaults?: PresetDefaults;
-  below?: React.ReactNode; // ✅ NY: server-renderade block under generatorn
+  below?: React.ReactNode;
 };
 
 function ShuffleIcon({ className = "" }: { className?: string }) {
@@ -87,7 +87,13 @@ function parseBudget(v?: string | null): Budget | null {
 
 function parseMood(v?: string | null): Mood | null {
   const m = (v ?? "").toLowerCase();
-  if (m === "cozy" || m === "active" || m === "romantic" || m === "fun" || m === "chill") {
+  if (
+    m === "cozy" ||
+    m === "active" ||
+    m === "romantic" ||
+    m === "fun" ||
+    m === "chill"
+  ) {
     return m as Mood;
   }
   return null;
@@ -98,6 +104,7 @@ function safeInitState(
   defaultMood: Mood,
   presetDefaults?: PresetDefaults
 ): InitState {
+  // Server-safe: inga window-anrop
   if (typeof window === "undefined") {
     return {
       city: defaultCity ?? "",
@@ -119,8 +126,10 @@ function safeInitState(
   const indoorRaw = p.get("indoor");
   const outdoorRaw = p.get("outdoor");
 
-  const indoorsFromUrl = indoorRaw === null ? null : indoorRaw === "0" ? false : true;
-  const outdoorsFromUrl = outdoorRaw === null ? null : outdoorRaw === "0" ? false : true;
+  const indoorsFromUrl =
+    indoorRaw === null ? null : indoorRaw === "0" ? false : true;
+  const outdoorsFromUrl =
+    outdoorRaw === null ? null : outdoorRaw === "0" ? false : true;
 
   const timeWindow = timeFromUrl ?? presetDefaults?.timeWindow ?? "tonight";
   const budget = budgetFromUrl ?? presetDefaults?.budget ?? "medium";
@@ -190,7 +199,9 @@ export default function IdeaGenerator({
     }
 
     function relaxBudget() {
-      return IDEAS.filter((i) => i.useCase === useCase).filter((i) => i.timeWindows.includes(timeWindow));
+      return IDEAS.filter((i) => i.useCase === useCase).filter((i) =>
+        i.timeWindows.includes(timeWindow)
+      );
     }
 
     function relaxTime() {
@@ -214,20 +225,32 @@ export default function IdeaGenerator({
 
   const [cardNonce, setCardNonce] = useState(0);
 
-  const [current, setCurrent] = useState<Idea | null>(() => {
-    const pool = (candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase)) as Idea[];
-    return pool.length ? pickOne(pool) : null;
-  });
+  // ✅ Hydration-safe: ingen random på första render (server + client matchar)
+  const [current, setCurrent] = useState<Idea | null>(null);
 
+  // ✅ Markera när vi är på klienten (efter hydration)
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    const pool = candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase);
+    setMounted(true);
+  }, []);
+
+  // ✅ Auto-generate efter mount + när filter ändras (client-only)
+  useEffect(() => {
+    if (!mounted) return;
+
+    const pool = candidates.length
+      ? (candidates as Idea[])
+      : (IDEAS.filter((i) => i.useCase === useCase) as Idea[]);
+
     setCurrent(pool.length ? pickOne(pool) : null);
     setCardNonce((n) => n + 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [useCase, timeWindow, budget, mood, indoorsOk, outdoorsOk]);
+  }, [mounted, useCase, timeWindow, budget, mood, indoorsOk, outdoorsOk]);
 
   function generate() {
-    const pool = candidates.length ? candidates : IDEAS.filter((i) => i.useCase === useCase);
+    const pool = candidates.length
+      ? (candidates as Idea[])
+      : (IDEAS.filter((i) => i.useCase === useCase) as Idea[]);
     setCurrent(pool.length ? pickOne(pool) : null);
     setCardNonce((n) => n + 1);
   }
@@ -336,10 +359,10 @@ export default function IdeaGenerator({
             <button
               type="button"
               onClick={generate}
-              disabled={!current}
+              disabled={!mounted || !current}
               className={[
                 "group inline-flex items-center gap-2 rounded-xl border px-4 py-2 font-medium transition",
-                !current
+                !mounted || !current
                   ? "cursor-not-allowed border-zinc-800 text-zinc-500"
                   : "border-zinc-700 text-zinc-50 hover:bg-zinc-900",
               ].join(" ")}
@@ -387,7 +410,6 @@ export default function IdeaGenerator({
           )}
         </section>
 
-        {/* ✅ Server-renderade SEO-block hamnar här, i samma container */}
         {below ? <div className="mt-6 space-y-6">{below}</div> : null}
 
         <footer className="mt-10 text-xs text-zinc-500">
@@ -457,7 +479,12 @@ function Toggle({ checked, onClick, label }: { checked: boolean; onClick: () => 
       ].join(" ")}
     >
       <span className="inline-flex items-center gap-2">
-        <span className={["inline-block h-2 w-2 rounded-full", checked ? "bg-emerald-300" : "bg-zinc-600"].join(" ")} />
+        <span
+          className={[
+            "inline-block h-2 w-2 rounded-full",
+            checked ? "bg-emerald-300" : "bg-zinc-600",
+          ].join(" ")}
+        />
         {label}
       </span>
     </button>
