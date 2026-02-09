@@ -170,6 +170,7 @@ export default function IdeaGenerator({
   const [indoorsOk, setIndoorsOk] = useState(init.indoorsOk);
   const [outdoorsOk, setOutdoorsOk] = useState(init.outdoorsOk);
   const [toast, setToast] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
 function showToast(msg: string) {
   setToast(msg);
@@ -254,13 +255,23 @@ function showToast(msg: string) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted, useCase, timeWindow, budget, mood, indoorsOk, outdoorsOk]);
 
-  function generate() {
+function generate() {
+  if (isGenerating) return;
+
+  setIsGenerating(true);
+
+  // Micro-delay för “thinking”-känsla
+  window.setTimeout(() => {
     const pool = candidates.length
-      ? (candidates as Idea[])
-      : (IDEAS.filter((i) => i.useCase === useCase) as Idea[]);
+      ? candidates
+      : IDEAS.filter((i) => i.useCase === useCase);
+
     setCurrent(pool.length ? pickOne(pool) : null);
     setCardNonce((n) => n + 1);
-  }
+    setIsGenerating(false);
+  }, 450);
+}
+
 
   function getShareUrl() {
     const params = new URLSearchParams({
@@ -355,28 +366,41 @@ showToast("Link copied!");
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={generate}
-              className="rounded-xl bg-zinc-50 px-4 py-2 font-medium text-zinc-950 hover:bg-zinc-200"
-            >
-              Give me an idea
-            </button>
+<button
+  type="button"
+  onClick={generate}
+  disabled={isGenerating}
+  className={[
+    "rounded-xl px-4 py-2 font-medium transition",
+    isGenerating
+      ? "cursor-not-allowed bg-zinc-300 text-zinc-600"
+      : "bg-zinc-50 text-zinc-950 hover:bg-zinc-200",
+  ].join(" ")}
+>
+  {isGenerating ? "Thinking…" : "Give me an idea"}
+</button>
 
-            <button
-              type="button"
-              onClick={generate}
-              disabled={!mounted || !current}
-              className={[
-                "group inline-flex items-center gap-2 rounded-xl border px-4 py-2 font-medium transition",
-                !mounted || !current
-                  ? "cursor-not-allowed border-zinc-800 text-zinc-500"
-                  : "border-zinc-700 text-zinc-50 hover:bg-zinc-900",
-              ].join(" ")}
-            >
-              <ShuffleIcon className="h-4 w-4 transition-transform group-hover:rotate-180" />
-              Generate another
-            </button>
+
+<button
+  type="button"
+  onClick={generate}
+  disabled={!current || isGenerating}
+  className={[
+    "group inline-flex items-center gap-2 rounded-xl border px-4 py-2 font-medium transition",
+    !current || isGenerating
+      ? "cursor-not-allowed border-zinc-800 text-zinc-500"
+      : "border-zinc-700 text-zinc-50 hover:bg-zinc-900",
+  ].join(" ")}
+>
+  <ShuffleIcon
+    className={[
+      "h-4 w-4 transition-transform",
+      isGenerating ? "animate-spin" : "group-hover:rotate-180",
+    ].join(" ")}
+  />
+  {isGenerating ? "Thinking…" : "Generate another"}
+</button>
+
 
             <button
               type="button"
