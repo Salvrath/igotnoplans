@@ -7,6 +7,7 @@ import { PRESETS, isPresetSlug, type PresetSlug } from "@/lib/presets";
 import { notFound } from "next/navigation";
 import CityPresets from "@/app/components/CityPresets";
 import PresetIntro from "@/app/components/PresetIntro";
+import PresetCrossLinks from "@/app/components/PresetCrossLinks";
 
 type Params = { city?: string; preset?: string };
 type Props = { params: Params | Promise<Params> };
@@ -68,11 +69,17 @@ export default async function Page({ params }: Props) {
   const cityTitle = CITY_GEO[citySlug]?.name ?? citySlug;
   const nearby = getNearbyCities(citySlug, 8);
 
-  return (
+ return (
     <ClientPresetPage
       below={
         <>
           <PresetIntro cityName={cityTitle} preset={presetSlug} />
+          <PresetCrossLinks
+            citySlug={citySlug}
+            cityName={cityTitle}
+            current={presetSlug}
+            limit={8}
+          />
           <PopularSearches citySlug={citySlug} cityName={cityTitle} />
           <CityPresets citySlug={citySlug} cityName={cityTitle} limit={10} />
           <NearbyCities currentCityName={cityTitle} items={nearby} />
