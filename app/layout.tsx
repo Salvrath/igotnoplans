@@ -1,65 +1,38 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import ConsentBanner from "@/app/components/ConsentBanner";
+import GoogleAnalytics from "@/app/components/GoogleAnalytics";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://igotnoplans.com"),
-
   title: "I Got No Plans — Instant ideas for dates, day trips & fun",
   description:
-    "No plans? Get instant ideas for dates, day trips, and spontaneous fun.",
-
-  icons: {
-    icon: [
-      { url: "/favicon.ico" },
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-    ],
-    apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
-    other: [
-      {
-        rel: "android-chrome",
-        url: "/android-chrome-192x192.png",
-      },
-      {
-        rel: "android-chrome",
-        url: "/android-chrome-512x512.png",
-      },
-    ],
-  },
-
+    "No plans? Get instant ideas for dates, day trips, and spontaneous fun. Pick your city, mood, time and budget — and go.",
   openGraph: {
     title: "I Got No Plans",
-    description:
-      "Instant ideas for dates, day trips, and spontaneous fun — no planning needed.",
+    description: "Instant ideas for dates, day trips, and spontaneous fun — no planning needed.",
     url: "https://igotnoplans.com",
     siteName: "I Got No Plans",
     type: "website",
   },
-
   twitter: {
     card: "summary_large_image",
     title: "I Got No Plans",
-    description:
-      "Instant ideas for dates, day trips, and spontaneous fun — no planning needed.",
+    description: "Instant ideas for dates, day trips, and spontaneous fun — no planning needed.",
   },
 };
 
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
+        {/* GA laddas endast efter samtycke */}
+        <GoogleAnalytics />
+
         {children}
-        <Analytics />
-        <SpeedInsights />
+
+        {/* Banner syns bara tills man valt */}
+        <ConsentBanner />
       </body>
     </html>
   );
