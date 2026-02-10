@@ -1,39 +1,42 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
-import ConsentBanner from "@/app/components/ConsentBanner";
-import GoogleAnalytics from "@/app/components/GoogleAnalytics";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://igotnoplans.com"),
   title: "I Got No Plans — Instant ideas for dates, day trips & fun",
   description:
-    "No plans? Get instant ideas for dates, day trips, and spontaneous fun. Pick your city, mood, time and budget — and go.",
-  openGraph: {
-    title: "I Got No Plans",
-    description: "Instant ideas for dates, day trips, and spontaneous fun — no planning needed.",
-    url: "https://igotnoplans.com",
-    siteName: "I Got No Plans",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "I Got No Plans",
-    description: "Instant ideas for dates, day trips, and spontaneous fun — no planning needed.",
-  },
+    "No plans? Get instant ideas for dates, day trips, and spontaneous fun.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body>
-        {/* GA laddas endast efter samtycke */}
-        <GoogleAnalytics />
-
-        {children}
-
-        {/* Banner syns bara tills man valt */}
-        <ConsentBanner />
-      </body>
+      <head>
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}', {
+                  anonymize_ip: true
+                });
+              `}
+            </Script>
+          </>
+        )}
+      </head>
+      <body>{children}</body>
     </html>
   );
 }
