@@ -1,10 +1,20 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import IdeaGenerator from "@/app/components/IdeaGenerator";
+import dynamic from "next/dynamic";
 import { getCityName } from "@/lib/cities";
+import { useParams } from "next/navigation";
 
-export default function ClientPage({ below }: { below?: React.ReactNode }) {
+const IdeaGenerator = dynamic(() => import("@/app/components/IdeaGenerator"), {
+  ssr: false,
+});
+
+type Props = {
+  below?: React.ReactNode;
+  headlineOverride?: string;
+  subheadlineOverride?: string;
+};
+
+export default function ClientPage({ below, headlineOverride, subheadlineOverride }: Props) {
   const params = useParams<{ city?: string | string[] }>();
 
   const cityParam = params?.city;
@@ -17,8 +27,8 @@ export default function ClientPage({ below }: { below?: React.ReactNode }) {
     <IdeaGenerator
       key={slug}
       useCase="date"
-      headline={`Things to do in ${cityTitle}.`}
-      subheadline={`No plans in ${cityTitle}? Get a solid idea and go.`}
+      headline={headlineOverride ?? `Things to do in ${cityTitle}.`}
+      subheadline={subheadlineOverride ?? `No plans in ${cityTitle}? Get a solid idea and go.`}
       shareText={`No plans in ${cityTitle}? Try this:`}
       defaultCity={cityTitle}
       below={below}

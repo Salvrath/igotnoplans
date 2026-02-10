@@ -53,15 +53,13 @@ export default async function Page({ params }: Props) {
 
   const nearby = getNearbyCities(citySlug, 8);
 
-  return (
-    <ClientPage
-      below={
-        <>
-          <PopularSearches citySlug={citySlug} cityName={cityTitle} />
-          <CityPresets citySlug={citySlug} cityName={cityTitle} limit={10} />
-          <NearbyCities currentCityName={cityTitle} items={nearby} />
-        </>
-      }
-    />
+  const below = (
+    <>
+      <PopularSearches citySlug={citySlug} cityName={cityTitle} />
+      <CityPresets citySlug={citySlug} cityName={cityTitle} limit={10} />
+      <NearbyCities currentCityName={cityTitle} items={nearby} />
+    </>
   );
+
+  return <ClientPage below={below} />;
 }

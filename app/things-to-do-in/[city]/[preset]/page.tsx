@@ -6,8 +6,6 @@ import { getNearbyCities } from "@/lib/nearby";
 import { PRESETS, isPresetSlug, type PresetSlug } from "@/lib/presets";
 import { notFound } from "next/navigation";
 import CityPresets from "@/app/components/CityPresets";
-import PresetIntro from "@/app/components/PresetIntro";
-import PresetCrossLinks from "@/app/components/PresetCrossLinks";
 
 type Params = { city?: string; preset?: string };
 type Props = { params: Params | Promise<Params> };
@@ -46,18 +44,8 @@ export async function generateMetadata({ params }: Props) {
     title,
     description,
     alternates: { canonical },
-    openGraph: {
-      title,
-      description,
-      url: canonical,
-      siteName: "I Got No Plans",
-      type: "website",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-    },
+    openGraph: { title, description, url: canonical, siteName: "I Got No Plans", type: "website" },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 
@@ -69,22 +57,13 @@ export default async function Page({ params }: Props) {
   const cityTitle = CITY_GEO[citySlug]?.name ?? citySlug;
   const nearby = getNearbyCities(citySlug, 8);
 
- return (
-    <ClientPresetPage
-      below={
-        <>
-          <PresetIntro cityName={cityTitle} preset={presetSlug} />
-          <PresetCrossLinks
-            citySlug={citySlug}
-            cityName={cityTitle}
-            current={presetSlug}
-            limit={8}
-          />
-          <PopularSearches citySlug={citySlug} cityName={cityTitle} />
-          <CityPresets citySlug={citySlug} cityName={cityTitle} limit={10} />
-          <NearbyCities currentCityName={cityTitle} items={nearby} />
-        </>
-      }
-    />
+  const below = (
+    <>
+      <PopularSearches citySlug={citySlug} cityName={cityTitle} />
+      <CityPresets citySlug={citySlug} cityName={cityTitle} limit={10} />
+      <NearbyCities currentCityName={cityTitle} items={nearby} />
+    </>
   );
+
+  return <ClientPresetPage below={below} />;
 }
