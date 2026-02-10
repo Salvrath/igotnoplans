@@ -1,28 +1,40 @@
-import ClientPage from "@/app/things-to-do-in/[city]/ClientPage";
-import NearbyCities from "@/app/components/NearbyCities";
+import IdeaGenerator from "@/app/components/IdeaGenerator";
 import PopularSearches from "@/app/components/PopularSearches";
 import CityPresets from "@/app/components/CityPresets";
+import NearbyCities from "@/app/components/NearbyCities";
+
 import { CITY_GEO } from "@/lib/cities";
 import { getNearbyCities } from "@/lib/nearby";
 
 export default function HomePage() {
-  const citySlug = "stockholm";
+  // Gör startsidan “lika bra som city-sidan” genom att återanvända Stockholm-data
+  const citySlug = "stockholm" as const;
   const cityTitle = CITY_GEO[citySlug]?.name ?? "Stockholm";
-  const nearby = getNearbyCities(citySlug as any, 8);
+  const nearby = getNearbyCities(citySlug, 8);
 
   const below = (
-    <>
-      <PopularSearches citySlug={citySlug as any} cityName={cityTitle} />
-      <CityPresets citySlug={citySlug as any} cityName={cityTitle} limit={10} />
+    <div className="space-y-6">
+      <PopularSearches citySlug={citySlug} cityName={cityTitle} />
+      <CityPresets citySlug={citySlug} cityName={cityTitle} limit={10} />
       <NearbyCities currentCityName={cityTitle} items={nearby} />
-    </>
+    </div>
   );
 
   return (
-    <ClientPage
+    <IdeaGenerator
+      useCase="date"
+      headline="I got no plans."
+      subheadline="Instant ideas for dates, day trips, and spontaneous fun."
+      shareText="No plans? Try this:"
+      defaultCity={cityTitle}
+      presetDefaults={{
+        timeWindow: "tonight",
+        budget: "medium",
+        mood: "romantic",
+        indoorsOk: true,
+        outdoorsOk: true,
+      }}
       below={below}
-      headlineOverride="I got no plans."
-      subheadlineOverride="Pick a city, mood and time — get a solid idea in seconds."
     />
   );
 }
