@@ -43,8 +43,14 @@ export async function generateMetadata({ params }: Props) {
   return {
     title,
     description,
-    alternates: { canonical },
-    openGraph: { title, description, url: canonical, siteName: "I Got No Plans", type: "website" },
+    alternates: { canonical }, // ✅ self-canonical per preset page
+    openGraph: {
+      title,
+      description,
+      url: canonical,
+      siteName: "I Got No Plans",
+      type: "website",
+    },
     twitter: { card: "summary_large_image", title, description },
   };
 }
@@ -55,12 +61,36 @@ export default async function Page({ params }: Props) {
   const presetSlug = getPresetSlug(p.preset);
 
   const cityTitle = CITY_GEO[citySlug]?.name ?? citySlug;
+  const preset = PRESETS[presetSlug];
+
   const nearby = getNearbyCities(citySlug, 8);
+
+  // ✅ Static SEO intro block (unique per preset page)
+  const intro = (
+    <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
+      <h2 className="text-lg font-semibold">
+        {preset.label} in {cityTitle}
+      </h2>
+      <p className="mt-2 text-zinc-300">
+        Looking for {preset.label.toLowerCase()} ideas in {cityTitle}? Use the
+        filters above to match your time, budget, and mood—then generate a plan
+        in seconds. Share the link to keep your exact settings.
+      </p>
+
+      <div className="mt-4 text-sm text-zinc-400">
+        Tip: try different moods and budgets to unlock more options.
+      </div>
+    </section>
+  );
 
   const below = (
     <>
+      {intro}
       <PopularSearches citySlug={citySlug} cityName={cityTitle} />
+
+      {/* ✅ Internal linking “related ideas” section */}
       <CityPresets citySlug={citySlug} cityName={cityTitle} limit={10} />
+
       <NearbyCities currentCityName={cityTitle} items={nearby} />
     </>
   );
