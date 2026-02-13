@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { SEED_CITIES, CITY_GEO, type CitySlug } from "@/lib/cities";
 import CityPresets from "@/app/components/CityPresets";
-import NearbyCities from "@/app/components/NearbyCities";
 import PopularSearches from "@/app/components/PopularSearches";
 
 function pickTopCities(n: number) {
-  // Om du vill styra ordningen: lägg en egen lista här istället.
   return (SEED_CITIES.slice(0, n) as CitySlug[]).map((slug) => ({
     slug,
     name: CITY_GEO[slug]?.name ?? slug,
@@ -13,11 +11,11 @@ function pickTopCities(n: number) {
 }
 
 export default function HomeSeoBlocks() {
-  const top = pickTopCities(10);
+  const top = pickTopCities(12);
 
   return (
     <div className="space-y-6">
-      {/* “Popular cities” – enkel och snabb */}
+      {/* Popular cities */}
       <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
         <h2 className="text-lg font-semibold">Popular cities</h2>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -33,10 +31,10 @@ export default function HomeSeoBlocks() {
         </div>
       </section>
 
-      {/* “Popular searches” – vi kan återanvända ditt block genom att mata en default-city */}
+      {/* Popular searches – använder din befintliga komponent (med default city) */}
       <PopularSearches citySlug="stockholm" cityName="Stockholm" />
 
-      {/* “Explore presets” – samma som city-sidan men med default city */}
+      {/* Explore ideas – via CityPresets (som du redan har) */}
       <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
         <h2 className="text-lg font-semibold">Explore ideas</h2>
         <p className="mt-1 text-sm text-zinc-400">
@@ -47,32 +45,10 @@ export default function HomeSeoBlocks() {
         </div>
       </section>
 
-      {/* “Nearby cities” – kräver items, men ditt block tar items på city-sidorna.
-          På startsidan kör vi istället en enkel “More cities” list */}
-      <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-        <h2 className="text-lg font-semibold">Explore more</h2>
-        <p className="mt-1 text-sm text-zinc-400">
-          Browse city pages (more coming as Google indexes).
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {pickTopCities(20).map((c) => (
-            <Link
-              key={c.slug}
-              href={`/things-to-do-in/${c.slug}`}
-              className="rounded-full border border-zinc-800 bg-zinc-900/30 px-3 py-1 text-sm text-zinc-200 hover:bg-zinc-900"
-            >
-              {c.name}
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Extra: tydlig CTA till Cities hub */}
+      {/* CTA till Cities hub */}
       <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
         <h2 className="text-lg font-semibold">All cities</h2>
-        <p className="mt-1 text-sm text-zinc-400">
-          Want everything in one place?
-        </p>
+        <p className="mt-1 text-sm text-zinc-400">Want everything in one place?</p>
         <div className="mt-4">
           <Link
             href="/cities"
