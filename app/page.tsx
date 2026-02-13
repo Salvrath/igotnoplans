@@ -1,15 +1,10 @@
-import dynamic from "next/dynamic";
+import IdeaGenerator from "@/app/components/IdeaGenerator";
 import HomeSeoBlocks from "@/app/components/HomeSeoBlocks";
-
-const IdeaGenerator = dynamic(() => import("@/app/components/IdeaGenerator"), {
-  ssr: false,
-});
 
 export const metadata = {
   title: "I Got No Plans | Instant ideas for dates, friends, solo and family",
   description:
-    "Instant ideas for dates, day trips, and spontaneous fun. Pick your city, time, budget and mood.",
-  alternates: { canonical: "https://igotnoplans.com/" },
+    "Get instant ideas for dates, friends, solo and family. Pick city, time, budget and mood.",
 };
 
 export default function HomePage() {
