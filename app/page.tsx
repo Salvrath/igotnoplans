@@ -1,32 +1,24 @@
-import IdeaGenerator from "@/app/components/IdeaGenerator";
-import PopularSearches from "@/app/components/PopularSearches";
-import CityPresets from "@/app/components/CityPresets";
-import NearbyCities from "@/app/components/NearbyCities";
+import dynamic from "next/dynamic";
+import HomeSeoBlocks from "@/app/components/HomeSeoBlocks";
 
-import { CITY_GEO } from "@/lib/cities";
-import { getNearbyCities } from "@/lib/nearby";
+const IdeaGenerator = dynamic(() => import("@/app/components/IdeaGenerator"), {
+  ssr: false,
+});
+
+export const metadata = {
+  title: "I Got No Plans | Instant ideas for dates, friends, solo and family",
+  description:
+    "Instant ideas for dates, day trips, and spontaneous fun. Pick your city, time, budget and mood.",
+  alternates: { canonical: "https://igotnoplans.com/" },
+};
 
 export default function HomePage() {
-  // Gör startsidan “lika bra som city-sidan” genom att återanvända Stockholm-data
-  const citySlug = "stockholm" as const;
-  const cityTitle = CITY_GEO[citySlug]?.name ?? "Stockholm";
-  const nearby = getNearbyCities(citySlug, 8);
-
-  const below = (
-    <div className="space-y-6">
-      <PopularSearches citySlug={citySlug} cityName={cityTitle} />
-      <CityPresets citySlug={citySlug} cityName={cityTitle} limit={10} />
-      <NearbyCities currentCityName={cityTitle} items={nearby} />
-    </div>
-  );
-
   return (
     <IdeaGenerator
       useCase="date"
       headline="I got no plans."
       subheadline="Instant ideas for dates, day trips, and spontaneous fun."
       shareText="No plans? Try this:"
-      defaultCity={cityTitle}
       presetDefaults={{
         timeWindow: "tonight",
         budget: "medium",
@@ -34,7 +26,7 @@ export default function HomePage() {
         indoorsOk: true,
         outdoorsOk: true,
       }}
-      below={below}
+      below={<HomeSeoBlocks />}
     />
   );
 }
