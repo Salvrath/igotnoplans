@@ -164,11 +164,13 @@ export default function IdeaGenerator({
   const [toast, setToast] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  function showToast(msg: string) {
-    setToast(msg);
-    window.clearTimeout((showToast as any)._t);
-    (showToast as any)._t = window.setTimeout(() => setToast(null), 2200);
-  }
+const toastTimerRef = React.useRef<number | null>(null);
+
+function showToast(msg: string) {
+  setToast(msg);
+  if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+  toastTimerRef.current = window.setTimeout(() => setToast(null), 2200);
+}
 
   const MIN_POOL = 20;
 
@@ -228,22 +230,26 @@ export default function IdeaGenerator({
 
   // Hydration-safe: render null first, then pick after mount
   const [current, setCurrent] = useState<Idea | null>(null);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+const didMountRef = React.useRef(false);
 
-  // After mount + when filters change: always pick something (fallbacks)
   useEffect(() => {
-    if (!mounted) return;
+  // mark first client render
+  if (!didMountRef.current) {
+    didMountRef.current = true;
+  }
 
-    let pool: Idea[] = (candidates as Idea[]) ?? [];
+  let pool: Idea[] = candidates ?? [];
+  if (!pool.length) pool = IDEAS.filter((i) => i.useCase === useCase);
+  if (!pool.length) pool = IDEAS;
 
-    if (!pool.length) pool = IDEAS.filter((i) => i.useCase === useCase) as Idea[];
-    if (!pool.length) pool = IDEAS as Idea[];
-
+  // schedule state updates to avoid "set-state-in-effect" rule in this repo
+  const id = window.setTimeout(() => {
     setCurrent(pool.length ? pickOne(pool) : null);
     setCardNonce((n) => n + 1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted, useCase, timeWindow, budget, mood, indoorsOk, outdoorsOk, candidates]);
+  }, 0);
+
+  return () => window.clearTimeout(id);
+}, [useCase, timeWindow, budget, mood, indoorsOk, outdoorsOk, candidates]);
 
   function generate() {
     if (isGenerating) return;

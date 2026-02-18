@@ -9,8 +9,10 @@ import CityPresets from "@/app/components/CityPresets";
 type Params = { city?: string };
 type Props = { params: Params | Promise<Params> };
 
-async function unwrapParams(p: Props["params"]): Promise<Params> {
-  return (p as any)?.then ? await (p as Promise<Params>) : (p as Params);
+async function unwrapParams<T extends object>(p: T | Promise<T>): Promise<T> {
+  const maybeThen = (p as unknown as { then?: unknown })?.then;
+  if (typeof maybeThen === "function") return await (p as Promise<T>);
+  return p as T;
 }
 
 function getCitySlug(paramsCity?: string): CitySlug {

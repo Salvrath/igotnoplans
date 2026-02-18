@@ -12,7 +12,7 @@ export default function GoogleAnalytics() {
   useEffect(() => {
     if (!GA_ID) return;
 
-    const check = () => setEnabled(getConsent() === "granted");
+    const check = () => setEnabled(getConsent() === "accepted");
     check();
 
     window.addEventListener("igp:consent", check);

@@ -39,3 +39,10 @@ body {
 .igp-fade-up {
   animation: igpFadeUp 220ms ease-out;
 }
+
+details > summary {
+  list-style: none;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}

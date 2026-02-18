@@ -62,11 +62,20 @@ export default function ClientPresetPage({ below }: Props) {
   const presetConfig = PRESETS[preset];
   const defaults = mapPresetToDefaults(preset);
 
+  const isUseCase = (v: unknown): v is UseCase =>
+    v === "date" || v === "friends" || v === "solo" || v === "family";
+
+  const useCase: UseCase = isUseCase(defaults.useCase)
+    ? defaults.useCase
+    : isUseCase(presetConfig.defaults?.useCase)
+      ? presetConfig.defaults!.useCase
+      : "date";
+
   return (
     <IdeaGenerator
       key={`${city}:${preset}`}
       presetDefaults={defaults}
-      useCase={(defaults.useCase ?? presetConfig.defaults?.useCase ?? "date") as any}
+      useCase={useCase}
       headline={`Things to do in ${cityTitle} ${presetConfig.titleSuffix}.`}
       subheadline={`No plans in ${cityTitle}? Here are ${presetConfig.label.toLowerCase()} ideas.`}
       shareText={`No plans in ${cityTitle}? Try this:`}
