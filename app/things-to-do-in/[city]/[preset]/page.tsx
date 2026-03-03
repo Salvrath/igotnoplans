@@ -33,18 +33,95 @@ function getPresetSlug(paramsPreset?: string): PresetSlug {
   return raw as PresetSlug;
 }
 
+/**
+ * Stable pseudo-random number per page for CTR-friendly titles.
+ * Important: stable per (city,preset) so titles don't change over time.
+ */
+function titleNumber(city: string, preset: PresetSlug): number {
+  const seed = `${city}:${preset}`;
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+
+  const ranges: Record<PresetSlug, [number, number]> = {
+    tonight: [9, 17],
+    date: [15, 27],
+    "with-friends": [17, 33],
+    solo: [13, 25],
+    family: [15, 29],
+    indoor: [17, 35],
+    outdoor: [15, 31],
+    budget: [17, 35],
+  };
+
+  const [min, max] = ranges[preset] ?? [15, 29];
+  const span = max - min + 1;
+  return min + (h % span);
+}
+
+function titleTemplate(cityName: string, preset: PresetSlug, n: number) {
+  switch (preset) {
+    case "date":
+      return `${n} Romantic Date Ideas in ${cityName} (Local Spots)`;
+    case "indoor":
+      return `${n} Indoor Things to Do in ${cityName} (Rain-Proof Ideas)`;
+    case "solo":
+      return `${n} Solo Things to Do in ${cityName} (Hidden Gems)`;
+    case "with-friends":
+      return `${n} Things to Do in ${cityName} with Friends (Fun Ideas)`;
+    case "family":
+      return `${n} Family Things to Do in ${cityName} (Kid-Friendly)`;
+    case "tonight":
+      return `${n} Things to Do Tonight in ${cityName} (Quick Ideas)`;
+    case "outdoor":
+      return `${n} Outdoor Things to Do in ${cityName} (Best Picks)`;
+    case "budget":
+      return `${n} Budget Things to Do in ${cityName} (Low-Cost Ideas)`;
+    default:
+      return `Things to do in ${cityName}`;
+  }
+}
+
+function descriptionTemplate(cityName: string, preset: PresetSlug) {
+  switch (preset) {
+    case "date":
+      return `No plans in ${cityName}? Try these romantic date ideas with local spots, simple steps, and options for any budget.`;
+    case "indoor":
+      return `No plans in ${cityName}? Here are indoor activities for rainy days, cozy nights, and easy plans you can do today.`;
+    case "solo":
+      return `No plans in ${cityName}? Solo-friendly ideas with calm options, hidden gems, and quick plans you can do alone.`;
+    case "with-friends":
+      return `No plans in ${cityName}? Fun things to do with friends — from low-key hangouts to more active plans.`;
+    case "family":
+      return `No plans in ${cityName}? Family-friendly activities with simple steps, indoor/outdoor options, and flexible budgets.`;
+    case "tonight":
+      return `No plans tonight in ${cityName}? Quick ideas you can do within a few hours — low effort, high payoff.`;
+    case "outdoor":
+      return `No plans in ${cityName}? Outdoor ideas for fresh air, scenic walks, and active plans — with simple steps.`;
+    case "budget":
+      return `No plans in ${cityName}? Low-cost ideas that still feel like a plan — cheap eats, free spots, and simple activities.`;
+    default:
+      return `No plans in ${cityName}? Get instant ideas for dates, friends, solo and family.`;
+  }
+}
+
 export async function generateMetadata({ params }: Props) {
   const p = await unwrapParams(params);
   const citySlug = getCitySlug(p.city);
   const presetSlug = getPresetSlug(p.preset);
 
   const cityTitle = CITY_GEO[citySlug]?.name ?? citySlug;
-  const presetCfg = PRESETS[presetSlug];
 
   const canonical = `https://igotnoplans.com/things-to-do-in/${citySlug}/${presetSlug}`;
 
-  const title = `Things to do in ${cityTitle} ${presetCfg.titleSuffix}. | I Got No Plans`;
-  const description = `No plans in ${cityTitle}? Get instant ${presetCfg.label.toLowerCase()} ideas for ${cityTitle}.`;
+  // Keep PRESETS import in file (used elsewhere + future extensibility)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const presetCfg = PRESETS[presetSlug];
+
+  const n = titleNumber(citySlug, presetSlug);
+  const titleCore = titleTemplate(cityTitle, presetSlug, n);
+
+  const title = `${titleCore} | I Got No Plans`;
+  const description = descriptionTemplate(cityTitle, presetSlug);
 
   return {
     title,
