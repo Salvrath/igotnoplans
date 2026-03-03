@@ -42,7 +42,7 @@ function titleNumber(city: string, preset: PresetSlug): number {
   let h = 0;
   for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
 
-  const ranges: Record<PresetSlug, [number, number]> = {
+  const ranges: Partial<Record<PresetSlug, [number, number]>> = {
     tonight: [9, 17],
     date: [15, 27],
     "with-friends": [17, 33],
@@ -50,7 +50,10 @@ function titleNumber(city: string, preset: PresetSlug): number {
     family: [15, 29],
     indoor: [17, 35],
     outdoor: [15, 31],
-    budget: [17, 35],
+    "low-budget": [17, 35],
+    "high-budget": [13, 27],
+    "half-day": [15, 29],
+    "full-day": [17, 33],
   };
 
   const [min, max] = ranges[preset] ?? [15, 29];
@@ -74,8 +77,6 @@ function titleTemplate(cityName: string, preset: PresetSlug, n: number) {
       return `${n} Things to Do Tonight in ${cityName} (Quick Ideas)`;
     case "outdoor":
       return `${n} Outdoor Things to Do in ${cityName} (Best Picks)`;
-    case "budget":
-      return `${n} Budget Things to Do in ${cityName} (Low-Cost Ideas)`;
     default:
       return `Things to do in ${cityName}`;
   }
@@ -97,8 +98,6 @@ function descriptionTemplate(cityName: string, preset: PresetSlug) {
       return `No plans tonight in ${cityName}? Quick ideas you can do within a few hours — low effort, high payoff.`;
     case "outdoor":
       return `No plans in ${cityName}? Outdoor ideas for fresh air, scenic walks, and active plans — with simple steps.`;
-    case "budget":
-      return `No plans in ${cityName}? Low-cost ideas that still feel like a plan — cheap eats, free spots, and simple activities.`;
     default:
       return `No plans in ${cityName}? Get instant ideas for dates, friends, solo and family.`;
   }
