@@ -1,27 +1,30 @@
+//lib/cities.ts
+
 export const SEED_CITIES = [
   // Nordics
-  "stockholm","gothenburg","malmo","uppsala","helsinki","tampere","turku","oslo","bergen","trondheim","copenhagen","aarhus","odense","reykjavik",
+  "linkoping","orebro","jonkoping","kristiansand","stavanger","aalborg","esbjerg","vaasa","jyvaskyla","lahti", "stockholm","gothenburg","malmo","uppsala","helsinki","tampere","turku","oslo","bergen","trondheim","copenhagen","aarhus","odense","reykjavik",
 
   // UK & Ireland
-  "london","manchester","birmingham","liverpool","leeds","bristol","glasgow","edinburgh","cardiff","belfast","dublin",
+  "london","manchester","birmingham","liverpool","leeds","bristol","glasgow","edinburgh","cardiff","belfast","dublin", "newcastle","sheffield","nottingham","york","bath","brighton","oxford","cambridge","southampton","plymouth",
+  
 
   // France, Benelux
   "paris","lyon","marseille","nice","toulouse","bordeaux","lille",
   "amsterdam","rotterdam","the-hague","utrecht",
   "brussels","antwerp","ghent",
-  "luxembourg",
+  "luxembourg", "nantes","montpellier","strasbourg","rennes","grenoble","dijon","avignon","cannes","annecy","rouen",
 
   // Germany, Austria, Switzerland
   "berlin","hamburg","munich","cologne","frankfurt","stuttgart","dusseldorf","leipzig","dresden",
   "vienna","salzburg","graz",
-  "zurich","geneva","basel","lausanne",
+  "zurich","geneva","basel","lausanne", "hannover","nuremberg","bremen","bonn","dortmund","essen","duisburg","munster","freiburg-im-breisgau","heidelberg",
 
   // Spain, Portugal
   "barcelona","madrid","valencia","seville","malaga","bilbao","palma",
-  "lisbon","porto",
+  "lisbon","porto", "alicante","granada","cordoba","zaragoza","san-sebastian","murcia","girona","cadiz","toledo","salamanca",
 
   // Italy
-  "rome","milan","florence","venice","naples","turin","bologna","palermo","catania",
+  "rome","milan","florence","venice","naples","turin","bologna","palermo","catania", "verona","genoa","pisa","siena","bari","trieste","padua","lecce","cagliari","perugia",
 
   // Central & Eastern Europe
   "prague","brno",
@@ -37,13 +40,16 @@ export const SEED_CITIES = [
   "tirana",
   "athens","thessaloniki",
   "istanbul","ankara","izmir",
+  "eindhoven","haarlem","maastricht","groningen","leiden","bruges","leuven","mechelen","namur","liege",
+
 
   // Baltics
-  "tallinn","riga","vilnius",
+  "tallinn","riga","vilnius", "poznan","lodz","katowice","lublin","szczecin","cluj-napoca","timisoara","brasov","sibiu","debrecen",
 
   // US
   "new-york","los-angeles","chicago","miami","san-francisco","seattle","boston","washington-dc","austin","denver",
-  "san-diego","philadelphia","atlanta","dallas","houston","phoenix","las-vegas","orlando","new-orleans","portland",
+  "san-diego","philadelphia","atlanta","dallas","houston","phoenix","las-vegas","orlando","new-orleans","portland", "edmonton","quebec-city","winnipeg","halifax","adelaide","gold-coast","canberra","wellington","christchurch","queenstown",
+  "nashville","detroit","minneapolis","cleveland","cincinnati","salt-lake-city","charlotte","kansas-city","st-louis","raleigh",
 
   // Canada
   "toronto","vancouver","montreal","calgary","ottawa",
@@ -285,6 +291,115 @@ export const CITY_GEO: Record<CitySlug, CityGeo> = {
   "brisbane": { name: "Brisbane", country: "AU", lat: -27.46794, lng: 153.02809 },
   "perth": { name: "Perth", country: "AU", lat: -31.95224, lng: 115.8614 },
   "auckland": { name: "Auckland", country: "NZ", lat: -36.84853, lng: 174.76349 },
+    "newcastle": { name: "Newcastle upon Tyne", country: "GB", lat: 54.97328, lng: -1.61396 },
+  "sheffield": { name: "Sheffield", country: "GB", lat: 53.38297, lng: -1.4659 },
+  "nottingham": { name: "Nottingham", country: "GB", lat: 52.9536, lng: -1.15047 },
+  "york": { name: "York", country: "GB", lat: 53.95763, lng: -1.08271 },
+  "bath": { name: "Bath", country: "GB", lat: 51.38111, lng: -2.359 },
+  "brighton": { name: "Brighton", country: "GB", lat: 50.82838, lng: -0.13947 },
+  "oxford": { name: "Oxford", country: "GB", lat: 51.75222, lng: -1.25596 },
+  "cambridge": { name: "Cambridge", country: "GB", lat: 52.20042, lng: 0.11662 },
+  "southampton": { name: "Southampton", country: "GB", lat: 50.90395, lng: -1.40428 },
+  "plymouth": { name: "Plymouth", country: "GB", lat: 50.37153, lng: -4.14305 },
+
+  "nantes": { name: "Nantes", country: "FR", lat: 47.21725, lng: -1.55336 },
+  "montpellier": { name: "Montpellier", country: "FR", lat: 43.61092, lng: 3.87723 },
+  "strasbourg": { name: "Strasbourg", country: "FR", lat: 48.58392, lng: 7.74553 },
+  "rennes": { name: "Rennes", country: "FR", lat: 48.11198, lng: -1.67429 },
+  "grenoble": { name: "Grenoble", country: "FR", lat: 45.17869, lng: 5.71479 },
+  "dijon": { name: "Dijon", country: "FR", lat: 47.32306, lng: 5.04194 },
+  "avignon": { name: "Avignon", country: "FR", lat: 43.94834, lng: 4.80892 },
+  "cannes": { name: "Cannes", country: "FR", lat: 43.55135, lng: 7.01275 },
+  "annecy": { name: "Annecy", country: "FR", lat: 45.89925, lng: 6.12938 },
+  "rouen": { name: "Rouen", country: "FR", lat: 49.44313, lng: 1.09932 },
+
+  "hannover": { name: "Hannover", country: "DE", lat: 52.37052, lng: 9.73322 },
+  "nuremberg": { name: "Nuremberg", country: "DE", lat: 49.45421, lng: 11.07752 },
+  "bremen": { name: "Bremen", country: "DE", lat: 53.07516, lng: 8.80777 },
+  "bonn": { name: "Bonn", country: "DE", lat: 50.73438, lng: 7.09549 },
+  "dortmund": { name: "Dortmund", country: "DE", lat: 51.51494, lng: 7.466 },
+  "essen": { name: "Essen", country: "DE", lat: 51.45657, lng: 7.01228 },
+  "duisburg": { name: "Duisburg", country: "DE", lat: 51.43247, lng: 6.76516 },
+  "munster": { name: "Münster", country: "DE", lat: 51.96236, lng: 7.62571 },
+  "freiburg-im-breisgau": { name: "Freiburg im Breisgau", country: "DE", lat: 47.9959, lng: 7.85222 },
+  "heidelberg": { name: "Heidelberg", country: "DE", lat: 49.40768, lng: 8.69079 },
+
+  "alicante": { name: "Alicante", country: "ES", lat: 38.34517, lng: -0.48149 },
+  "granada": { name: "Granada", country: "ES", lat: 37.18817, lng: -3.60667 },
+  "cordoba": { name: "Córdoba", country: "ES", lat: 37.88473, lng: -4.77915 },
+  "zaragoza": { name: "Zaragoza", country: "ES", lat: 41.65606, lng: -0.87734 },
+  "san-sebastian": { name: "San Sebastián", country: "ES", lat: 43.31283, lng: -1.97499 },
+  "murcia": { name: "Murcia", country: "ES", lat: 37.98704, lng: -1.13004 },
+  "girona": { name: "Girona", country: "ES", lat: 41.98311, lng: 2.82493 },
+  "cadiz": { name: "Cádiz", country: "ES", lat: 36.52672, lng: -6.2891 },
+  "toledo": { name: "Toledo", country: "ES", lat: 39.8581, lng: -4.02263 },
+  "salamanca": { name: "Salamanca", country: "ES", lat: 40.96882, lng: -5.66388 },
+
+  "verona": { name: "Verona", country: "IT", lat: 45.43861, lng: 10.99278 },
+  "genoa": { name: "Genoa", country: "IT", lat: 44.40478, lng: 8.94439 },
+  "pisa": { name: "Pisa", country: "IT", lat: 43.70853, lng: 10.4036 },
+  "siena": { name: "Siena", country: "IT", lat: 43.31881, lng: 11.33076 },
+  "bari": { name: "Bari", country: "IT", lat: 41.11773, lng: 16.85118 },
+  "trieste": { name: "Trieste", country: "IT", lat: 45.64861, lng: 13.78081 },
+  "padua": { name: "Padua", country: "IT", lat: 45.40797, lng: 11.88586 },
+  "lecce": { name: "Lecce", country: "IT", lat: 40.35481, lng: 18.17244 },
+  "cagliari": { name: "Cagliari", country: "IT", lat: 39.23054, lng: 9.11917 },
+  "perugia": { name: "Perugia", country: "IT", lat: 43.1122, lng: 12.38878 },
+
+  "eindhoven": { name: "Eindhoven", country: "NL", lat: 51.44083, lng: 5.47778 },
+  "haarlem": { name: "Haarlem", country: "NL", lat: 52.38084, lng: 4.63683 },
+  "maastricht": { name: "Maastricht", country: "NL", lat: 50.85137, lng: 5.69097 },
+  "groningen": { name: "Groningen", country: "NL", lat: 53.21917, lng: 6.56667 },
+  "leiden": { name: "Leiden", country: "NL", lat: 52.15833, lng: 4.49306 },
+  "bruges": { name: "Bruges", country: "BE", lat: 51.20892, lng: 3.22424 },
+  "leuven": { name: "Leuven", country: "BE", lat: 50.87959, lng: 4.70093 },
+  "mechelen": { name: "Mechelen", country: "BE", lat: 51.02574, lng: 4.47762 },
+  "namur": { name: "Namur", country: "BE", lat: 50.4669, lng: 4.86746 },
+  "liege": { name: "Liège", country: "BE", lat: 50.63373, lng: 5.56749 },
+
+  "poznan": { name: "Poznań", country: "PL", lat: 52.40692, lng: 16.92993 },
+  "lodz": { name: "Łódź", country: "PL", lat: 51.75925, lng: 19.45598 },
+  "katowice": { name: "Katowice", country: "PL", lat: 50.25841, lng: 19.02754 },
+  "lublin": { name: "Lublin", country: "PL", lat: 51.25, lng: 22.56667 },
+  "szczecin": { name: "Szczecin", country: "PL", lat: 53.42894, lng: 14.55302 },
+  "cluj-napoca": { name: "Cluj-Napoca", country: "RO", lat: 46.77121, lng: 23.62364 },
+  "timisoara": { name: "Timișoara", country: "RO", lat: 45.75372, lng: 21.22571 },
+  "brasov": { name: "Brașov", country: "RO", lat: 45.64861, lng: 25.60613 },
+  "sibiu": { name: "Sibiu", country: "RO", lat: 45.79833, lng: 24.12558 },
+  "debrecen": { name: "Debrecen", country: "HU", lat: 47.53333, lng: 21.63333 },
+
+  "linkoping": { name: "Linköping", country: "SE", lat: 58.41086, lng: 15.62157 },
+  "orebro": { name: "Örebro", country: "SE", lat: 59.27412, lng: 15.2066 },
+  "jonkoping": { name: "Jönköping", country: "SE", lat: 57.78145, lng: 14.15618 },
+  "kristiansand": { name: "Kristiansand", country: "NO", lat: 58.14671, lng: 7.9956 },
+  "stavanger": { name: "Stavanger", country: "NO", lat: 58.97005, lng: 5.73332 },
+  "aalborg": { name: "Aalborg", country: "DK", lat: 57.048, lng: 9.9187 },
+  "esbjerg": { name: "Esbjerg", country: "DK", lat: 55.47028, lng: 8.45187 },
+  "vaasa": { name: "Vaasa", country: "FI", lat: 63.096, lng: 21.61577 },
+  "jyvaskyla": { name: "Jyväskylä", country: "FI", lat: 62.24147, lng: 25.72088 },
+  "lahti": { name: "Lahti", country: "FI", lat: 60.98267, lng: 25.66151 },
+
+  "edmonton": { name: "Edmonton", country: "CA", lat: 53.55014, lng: -113.46871 },
+  "quebec-city": { name: "Québec City", country: "CA", lat: 46.81228, lng: -71.21454 },
+  "winnipeg": { name: "Winnipeg", country: "CA", lat: 49.8844, lng: -97.14704 },
+  "halifax": { name: "Halifax", country: "CA", lat: 44.64533, lng: -63.57239 },
+  "adelaide": { name: "Adelaide", country: "AU", lat: -34.92866, lng: 138.59863 },
+  "gold-coast": { name: "Gold Coast", country: "AU", lat: -28.00029, lng: 153.43088 },
+  "canberra": { name: "Canberra", country: "AU", lat: -35.28346, lng: 149.12807 },
+  "wellington": { name: "Wellington", country: "NZ", lat: -41.28664, lng: 174.77557 },
+  "christchurch": { name: "Christchurch", country: "NZ", lat: -43.53333, lng: 172.63333 },
+  "queenstown": { name: "Queenstown", country: "NZ", lat: -45.03116, lng: 168.66264 },
+
+  "nashville": { name: "Nashville", country: "US", lat: 36.16589, lng: -86.78444 },
+  "detroit": { name: "Detroit", country: "US", lat: 42.33143, lng: -83.04575 },
+  "minneapolis": { name: "Minneapolis", country: "US", lat: 44.97997, lng: -93.26384 },
+  "cleveland": { name: "Cleveland", country: "US", lat: 41.4995, lng: -81.69541 },
+  "cincinnati": { name: "Cincinnati", country: "US", lat: 39.162, lng: -84.45689 },
+  "salt-lake-city": { name: "Salt Lake City", country: "US", lat: 40.76078, lng: -111.89105 },
+  "charlotte": { name: "Charlotte", country: "US", lat: 35.22709, lng: -80.84313 },
+  "kansas-city": { name: "Kansas City", country: "US", lat: 39.09973, lng: -94.57857 },
+  "st-louis": { name: "St. Louis", country: "US", lat: 38.62727, lng: -90.19789 },
+  "raleigh": { name: "Raleigh", country: "US", lat: 35.7721, lng: -78.63861 },
 };
 
 export function titleizeCity(slug: string) {

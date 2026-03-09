@@ -1,3 +1,5 @@
+//app/cities/page.tsx
+
 import { SEED_CITIES, CITY_GEO, type CitySlug } from "@/lib/cities";
 
 export const metadata = {

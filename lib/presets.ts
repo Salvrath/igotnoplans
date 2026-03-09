@@ -1,3 +1,5 @@
+//lib/presets.ts
+
 export type PresetSlug =
   | "tonight"
   | "half-day"
