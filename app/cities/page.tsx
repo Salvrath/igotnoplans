@@ -8,6 +8,22 @@ export const metadata = {
     "Browse cities and discover instant ideas for tonight, dates, friends, solo and family.",
 };
 
+<section className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
+  <h2 className="text-lg font-semibold">Browse by country</h2>
+  <p className="mt-2 text-sm text-zinc-400">
+    Explore geographic hubs to discover more city pages and presets faster.
+  </p>
+
+  <div className="mt-4">
+    <a
+      href="/countries"
+      className="inline-flex rounded-xl border border-zinc-800 bg-zinc-950/40 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-900"
+    >
+      Open country hubs →
+    </a>
+  </div>
+</section>
+
 const POPULAR_PRESETS = [
   { preset: "tonight", label: "Tonight" },
   { preset: "date", label: "Date" },
