@@ -1,14 +1,18 @@
-import { SEED_CITIES } from "@/lib/cities";
+// app/sitemap.ts
+
+import { SEED_CITIES, CITY_GEO } from "@/lib/cities";
 
 /**
  * SEO strategy:
  * - Index all city pages
- * - Index a limited, high-intent set of presets per city
- * - Avoid thin / overexpanded sitemap
+ * - Index a controlled set of high-intent presets per city
+ * - Include crawl hubs (/cities, /countries, /countries/[country])
  */
 
 const PRESET_SLUGS = [
   "tonight",
+  "half-day",
+  "full-day",
   "date",
   "with-friends",
   "solo",
@@ -16,13 +20,21 @@ const PRESET_SLUGS = [
   "indoor",
   "outdoor",
   "low-budget",
+  "high-budget",
+  "romantic",
+  "chill",
 ] as const;
+
+function getCountrySlugs() {
+  return Array.from(
+    new Set(SEED_CITIES.map((city) => CITY_GEO[city].country.toLowerCase()))
+  ).sort();
+}
 
 export default function sitemap() {
   const baseUrl = "https://igotnoplans.com";
   const now = new Date().toISOString();
 
-  // Core static pages
   const staticRoutes = [
     "",
     "/date-ideas",
@@ -31,6 +43,7 @@ export default function sitemap() {
     "/family",
     "/tonight",
     "/cities",
+    "/countries",
   ].map((p) => ({
     url: `${baseUrl}${p}`,
     lastModified: now,
@@ -38,7 +51,13 @@ export default function sitemap() {
     priority: p === "" ? 1 : 0.8,
   }));
 
-  // /things-to-do-in/{city}
+  const countryRoutes = getCountrySlugs().map((country) => ({
+    url: `${baseUrl}/countries/${country}`,
+    lastModified: now,
+    changeFrequency: "weekly" as const,
+    priority: 0.75,
+  }));
+
   const cityRoutes = SEED_CITIES.map((city) => ({
     url: `${baseUrl}/things-to-do-in/${city}`,
     lastModified: now,
@@ -46,7 +65,6 @@ export default function sitemap() {
     priority: 0.7,
   }));
 
-  // /things-to-do-in/{city}/{preset}
   const presetRoutes = SEED_CITIES.flatMap((city) =>
     PRESET_SLUGS.map((preset) => ({
       url: `${baseUrl}/things-to-do-in/${city}/${preset}`,
@@ -56,5 +74,5 @@ export default function sitemap() {
     }))
   );
 
-  return [...staticRoutes, ...cityRoutes, ...presetRoutes];
+  return [...staticRoutes, ...countryRoutes, ...cityRoutes, ...presetRoutes];
 }
