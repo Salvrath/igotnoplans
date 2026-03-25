@@ -9,8 +9,8 @@ import {
 } from "@/lib/seo/preset-seo";
 
 type Props = {
-  city: string; // slug, e.g. "valencia"
-  preset: string; // slug, e.g. "date"
+  city: string;
+  preset: string;
 };
 
 type LocalOverride = {
@@ -18,7 +18,6 @@ type LocalOverride = {
   paragraphs?: string[];
 };
 
-// 1) Local boosts for winners (keep this small and curated)
 const LOCAL_PRESET_OVERRIDES: Record<string, Record<string, LocalOverride>> = {
   leeds: {
     solo: {
@@ -49,11 +48,32 @@ const LOCAL_PRESET_OVERRIDES: Record<string, Record<string, LocalOverride>> = {
   },
 };
 
-// 3) Optional: only show extra internal links for priority cities (winners)
-const PRIORITY_CITIES = new Set(["leeds", "gothenburg", "malmo"]);
+const RELATED_PRESETS = [
+  "tonight",
+  "date",
+  "with-friends",
+  "solo",
+  "family",
+  "indoor",
+  "outdoor",
+  "low-budget",
+  "high-budget",
+  "romantic",
+  "chill",
+];
 
 function presetPath(city: string, preset: string) {
   return `/things-to-do-in/${city}/${preset}`;
+}
+
+function buildWhySection(cityName: string, presetName: string) {
+  return {
+    title: `Why ${cityName} works well for ${presetName.toLowerCase()} plans`,
+    paragraphs: [
+      `${cityName} gives you a good mix of quick plans, low-effort options, and more intentional activities, which makes it easier to match the mood of the day.`,
+      `Whether you want something spontaneous, more relaxed, or a plan that feels a bit more special, ${cityName} usually has enough variety to make ${presetName.toLowerCase()} ideas work well.`,
+    ],
+  };
 }
 
 export default function PresetSeoBlocks({ city, preset }: Props) {
@@ -66,11 +86,11 @@ export default function PresetSeoBlocks({ city, preset }: Props) {
   const intro = buildIntro(cityName, presetSlug);
   const ideas = buildStaticIdeas(cityName, presetSlug);
   const faqs = buildFaq(cityName, presetSlug);
-
-  // 2) Apply override if exists
   const override = LOCAL_PRESET_OVERRIDES[citySlug]?.[presetSlug];
+  const why = buildWhySection(cityName, presetName);
 
-  // Breadcrumb schema: Home -> City -> Preset
+  const relatedPresets = RELATED_PRESETS.filter((p) => p !== presetSlug).slice(0, 8);
+
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -96,7 +116,6 @@ export default function PresetSeoBlocks({ city, preset }: Props) {
     ],
   };
 
-  // FAQ schema
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -119,7 +138,6 @@ export default function PresetSeoBlocks({ city, preset }: Props) {
         </h2>
         <p className="mt-2 text-zinc-200 leading-relaxed">{intro}</p>
 
-        {/* ✅ Local booster block (only if override exists) */}
         {override ? (
           <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
             <h3 className="font-semibold">{override.title ?? `Local ideas in ${cityName}`}</h3>
@@ -131,26 +149,31 @@ export default function PresetSeoBlocks({ city, preset }: Props) {
           </div>
         ) : null}
 
-        {/* ✅ Optional: extra internal links only for winners */}
-        {PRIORITY_CITIES.has(citySlug) ? (
-          <div className="mt-4 text-sm text-zinc-300">
-            <div className="font-medium text-zinc-200">More ideas in this city</div>
-            <div className="mt-2 flex flex-wrap gap-3">
-              <a className="underline" href={presetPath(citySlug, "indoor")}>
-                Indoor
+        {/* Better internal links, higher up */}
+        <div className="mt-5 rounded-lg border border-white/10 bg-black/20 p-4">
+          <h3 className="font-semibold">More ideas in {cityName}</h3>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {relatedPresets.map((p) => (
+              <a
+                key={p}
+                href={presetPath(citySlug, p)}
+                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-zinc-200 hover:bg-white/10"
+              >
+                {presetLabel(p)}
               </a>
-              <a className="underline" href={presetPath(citySlug, "date")}>
-                Date
-              </a>
-              <a className="underline" href={presetPath(citySlug, "with-friends")}>
-                Friends
-              </a>
-              <a className="underline" href={presetPath(citySlug, "solo")}>
-                Solo
-              </a>
-            </div>
+            ))}
           </div>
-        ) : null}
+        </div>
+      </div>
+
+      {/* Why this city works */}
+      <div className="rounded-xl border border-white/10 bg-white/5 p-5">
+        <h2 className="text-xl font-semibold tracking-tight">{why.title}</h2>
+        <div className="mt-3 space-y-3 text-zinc-200 leading-relaxed">
+          {why.paragraphs.map((p, i) => (
+            <p key={i}>{p}</p>
+          ))}
+        </div>
       </div>
 
       {/* Static ideas list */}
@@ -189,7 +212,6 @@ export default function PresetSeoBlocks({ city, preset }: Props) {
         </div>
       </div>
 
-      {/* JSON-LD schemas */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
