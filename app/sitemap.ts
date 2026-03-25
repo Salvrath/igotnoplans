@@ -69,7 +69,7 @@ export default function sitemap() {
     PRESET_SLUGS.map((preset) => ({
       url: `${baseUrl}/things-to-do-in/${city}/${preset}`,
       lastModified: now,
-      changeFrequency: "weekly" as const,
+      changeFrequency: "daily" as const,
       priority: 0.6,
     }))
   );

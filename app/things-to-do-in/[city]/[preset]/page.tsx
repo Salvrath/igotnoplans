@@ -120,6 +120,7 @@ export async function generateMetadata({ params }: Props) {
   const titleCore = titleTemplate(cityTitle, presetSlug, n);
 
   const title = `${titleCore} | I Got No Plans`;
+  
   const description = descriptionTemplate(cityTitle, presetSlug);
 
   return {
@@ -156,8 +157,8 @@ export default async function Page({ params }: Props) {
 
       {/* Dina befintliga block */}
       <PopularSearches citySlug={citySlug} cityName={cityTitle} />
-      <CityPresets citySlug={citySlug} cityName={cityTitle} limit={10} />
-      <NearbyCities currentCityName={cityTitle} items={nearby} />
+      <CityPresets citySlug={citySlug} cityName={cityTitle} limit={30} />
+      <NearbyCities currentCityName={cityTitle} items={nearby.slice(0,5)} />
     </>
   );
 
