@@ -54,8 +54,8 @@ function normalize(value: string | undefined) {
  *   ?useCase=date -> /date
  *
  * We only redirect when exactly one semantic filter is active. Full share URLs
- * contain several filters and must keep their exact configuration, so those are
- * canonicalized to the city root and marked noindex instead.
+ * contain several filters and must keep their exact configuration, so they stay
+ * accessible but point their canonical at the clean city URL.
  */
 function getSingleFilterPreset(searchParams: SearchParams): PresetSlug | null {
   const filters: Array<{ key: string; value: string | undefined }> = [
@@ -109,27 +109,17 @@ function getSingleFilterPreset(searchParams: SearchParams): PresetSlug | null {
   return null;
 }
 
-function hasQueryParams(searchParams: SearchParams) {
-  return Object.values(searchParams).some((value) => {
-    if (Array.isArray(value)) return value.length > 0;
-    return typeof value === "string" && value.length > 0;
-  });
-}
-
-export async function generateMetadata({ params, searchParams }: Props) {
+export async function generateMetadata({ params }: Props) {
   const p = await unwrapParams(params);
-  const query = await unwrapSearchParams(searchParams);
   const citySlug = getCitySlug(p.city);
   const cityTitle = CITY_GEO[citySlug]?.name ?? citySlug;
 
   const canonical = `https://igotnoplans.com/things-to-do-in/${citySlug}`;
-  const filtered = hasQueryParams(query);
 
   return {
     title: `Things to do in ${cityTitle} | I Got No Plans`,
     description: `No plans in ${cityTitle}? Get instant ideas for dates, friends, solo and family.`,
     alternates: { canonical },
-    robots: filtered ? { index: false, follow: true } : undefined,
     openGraph: {
       title: `Things to do in ${cityTitle} | I Got No Plans`,
       description: `No plans in ${cityTitle}? Get instant ideas for dates, friends, solo and family.`,
