@@ -9,7 +9,7 @@ import PresetSeoBlocks from "@/app/components/seo/PresetSeoBlocks";
 import { CITY_GEO, SEED_CITIES, type CitySlug } from "@/lib/cities";
 import { getNearbyCities } from "@/lib/nearby";
 import { notFound } from "next/navigation";
-import { PRESETS, isPresetSlug, type PresetSlug } from "@/lib/presets";
+import { isPresetSlug, type PresetSlug } from "@/lib/presets";
 
 type Params = { city?: string; preset?: string };
 type Props = { params: Params | Promise<Params> };
@@ -33,71 +33,67 @@ function getPresetSlug(paramsPreset?: string): PresetSlug {
   return raw as PresetSlug;
 }
 
-/**
- * Stable pseudo-random number per page for CTR-friendly titles.
- * Important: stable per (city,preset) so titles don't change over time.
- */
-function titleNumber(city: string, preset: PresetSlug): number {
-  const seed = `${city}:${preset}`;
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-
-  const ranges: Partial<Record<PresetSlug, [number, number]>> = {
-    tonight: [9, 17],
-    date: [15, 27],
-    "with-friends": [17, 33],
-    solo: [13, 25],
-    family: [15, 29],
-    indoor: [17, 35],
-    outdoor: [15, 31],
-    "low-budget": [17, 35],
-    "high-budget": [13, 27],
-    "half-day": [15, 29],
-    "full-day": [17, 33],
-  };
-
-  const [min, max] = ranges[preset] ?? [15, 29];
-  const span = max - min + 1;
-  return min + (h % span);
-}
-
-function titleTemplate(cityName: string, preset: PresetSlug, n: number) {
+function titleTemplate(cityName: string, preset: PresetSlug) {
   switch (preset) {
     case "date":
-      return `${n} Romantic Date Ideas in ${cityName} (Local Spots)`;
+      return `Best Date Ideas in ${cityName}: Romantic & Local Spots`;
     case "indoor":
-      return `${n} Indoor Things to Do in ${cityName} (Rain-Proof Ideas)`;
+      return `Indoor Things to Do in ${cityName}: Rainy-Day Ideas`;
     case "solo":
-      return `${n} Solo Things to Do in ${cityName} (Hidden Gems)`;
+      return `Solo Things to Do in ${cityName}: Easy Local Ideas`;
     case "with-friends":
-      return `${n} Things to Do in ${cityName} with Friends (Fun Ideas)`;
+      return `Things to Do in ${cityName} with Friends`;
     case "family":
-      return `${n} Family Things to Do in ${cityName} (Kid-Friendly)`;
+      return `Family Things to Do in ${cityName}: Kid-Friendly Ideas`;
     case "tonight":
-      return `${n} Things to Do Tonight in ${cityName} (Quick Ideas)`;
+      return `Things to Do Tonight in ${cityName}: Quick Ideas`;
     case "outdoor":
-      return `${n} Outdoor Things to Do in ${cityName} (Best Picks)`;
+      return `Outdoor Things to Do in ${cityName}: Local Ideas`;
+    case "low-budget":
+      return `Cheap Things to Do in ${cityName}: Low-Budget Ideas`;
+    case "high-budget":
+      return `Premium Things to Do in ${cityName}: Special Ideas`;
+    case "half-day":
+      return `Half-Day Things to Do in ${cityName}: Easy Itinerary Ideas`;
+    case "full-day":
+      return `Full-Day Things to Do in ${cityName}: Day Plan Ideas`;
+    case "romantic":
+      return `Romantic Things to Do in ${cityName}: Date Night Ideas`;
+    case "chill":
+      return `Relaxing Things to Do in ${cityName}: Chill Ideas`;
     default:
-      return `Things to do in ${cityName}`;
+      return `Things to Do in ${cityName}`;
   }
 }
 
 function descriptionTemplate(cityName: string, preset: PresetSlug) {
   switch (preset) {
     case "date":
-      return `No plans in ${cityName}? Try these romantic date ideas with local spots, simple steps, and options for any budget.`;
+      return `Find date ideas in ${cityName}, from relaxed first-date plans to romantic local spots and easy evening ideas.`;
     case "indoor":
-      return `No plans in ${cityName}? Here are indoor activities for rainy days, cozy nights, and easy plans you can do today.`;
+      return `Find indoor things to do in ${cityName} for rainy days, cold weather, cozy plans, and easy activities.`;
     case "solo":
-      return `No plans in ${cityName}? Solo-friendly ideas with calm options, hidden gems, and quick plans you can do alone.`;
+      return `Explore solo things to do in ${cityName}, with easy local ideas for relaxed, active, and spontaneous plans.`;
     case "with-friends":
-      return `No plans in ${cityName}? Fun things to do with friends — from low-key hangouts to more active plans.`;
+      return `Find fun things to do with friends in ${cityName}, from low-key hangouts to group activities and nights out.`;
     case "family":
-      return `No plans in ${cityName}? Family-friendly activities with simple steps, indoor/outdoor options, and flexible budgets.`;
+      return `Discover family-friendly things to do in ${cityName}, including flexible indoor, outdoor, and budget-friendly ideas.`;
     case "tonight":
-      return `No plans tonight in ${cityName}? Quick ideas you can do within a few hours — low effort, high payoff.`;
+      return `No plans tonight in ${cityName}? Find quick ideas you can do within a few hours, from relaxed to spontaneous.`;
     case "outdoor":
-      return `No plans in ${cityName}? Outdoor ideas for fresh air, scenic walks, and active plans — with simple steps.`;
+      return `Find outdoor things to do in ${cityName}, including walks, active plans, scenic ideas, and easy local activities.`;
+    case "low-budget":
+      return `Find cheap and low-budget things to do in ${cityName}, including free ideas, affordable activities, and simple plans.`;
+    case "high-budget":
+      return `Find premium things to do in ${cityName} when you want a more special day, date, or experience.`;
+    case "half-day":
+      return `Only have half a day in ${cityName}? Find practical ideas and flexible plans that fit into a few hours.`;
+    case "full-day":
+      return `Plan a full day in ${cityName} with flexible ideas for food, activities, sightseeing, and downtime.`;
+    case "romantic":
+      return `Find romantic things to do in ${cityName}, with date-night ideas, relaxed plans, and local spots for couples.`;
+    case "chill":
+      return `Find relaxing things to do in ${cityName}, with low-effort ideas for slow days, quiet plans, and easy downtime.`;
     default:
       return `No plans in ${cityName}? Get instant ideas for dates, friends, solo and family.`;
   }
@@ -107,20 +103,11 @@ export async function generateMetadata({ params }: Props) {
   const p = await unwrapParams(params);
   const citySlug = getCitySlug(p.city);
   const presetSlug = getPresetSlug(p.preset);
-
   const cityTitle = CITY_GEO[citySlug]?.name ?? citySlug;
 
   const canonical = `https://igotnoplans.com/things-to-do-in/${citySlug}/${presetSlug}`;
-
-  // Keep PRESETS import in file (used elsewhere + future extensibility)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const presetCfg = PRESETS[presetSlug];
-
-  const n = titleNumber(citySlug, presetSlug);
-  const titleCore = titleTemplate(cityTitle, presetSlug, n);
-
+  const titleCore = titleTemplate(cityTitle, presetSlug);
   const title = `${titleCore} | I Got No Plans`;
-  
   const description = descriptionTemplate(cityTitle, presetSlug);
 
   return {
@@ -152,13 +139,10 @@ export default async function Page({ params }: Props) {
 
   const below = (
     <>
-      {/* ✅ Server-renderad SEO (syns för Google) */}
       <PresetSeoBlocks city={citySlug} preset={presetSlug} />
-
-      {/* Dina befintliga block */}
       <PopularSearches citySlug={citySlug} cityName={cityTitle} />
       <CityPresets citySlug={citySlug} cityName={cityTitle} limit={30} />
-      <NearbyCities currentCityName={cityTitle} items={nearby.slice(0,5)} />
+      <NearbyCities currentCityName={cityTitle} items={nearby.slice(0, 5)} />
     </>
   );
 
