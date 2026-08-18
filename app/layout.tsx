@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import AdSenseScript from "@/app/components/AdSenseScript";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -36,7 +37,10 @@ export default function RootLayout({
           </>
         )}
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <AdSenseScript />
+      </body>
     </html>
   );
 }
