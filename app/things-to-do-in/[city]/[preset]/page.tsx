@@ -5,6 +5,7 @@ import NearbyCities from "@/app/components/NearbyCities";
 import PopularSearches from "@/app/components/PopularSearches";
 import CityPresets from "@/app/components/CityPresets";
 import PresetSeoBlocks from "@/app/components/seo/PresetSeoBlocks";
+import AdUnit from "@/app/components/AdUnit";
 
 import { CITY_GEO, SEED_CITIES, type CitySlug } from "@/lib/cities";
 import { getNearbyCities } from "@/lib/nearby";
@@ -139,6 +140,7 @@ export default async function Page({ params }: Props) {
 
   const below = (
     <>
+      <AdUnit />
       <PresetSeoBlocks city={citySlug} preset={presetSlug} />
       <PopularSearches citySlug={citySlug} cityName={cityTitle} />
       <CityPresets citySlug={citySlug} cityName={cityTitle} limit={30} />
