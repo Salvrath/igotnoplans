@@ -3,10 +3,11 @@
 import { SEED_CITIES, CITY_GEO } from "@/lib/cities";
 
 /**
- * SEO strategy:
- * - Index all city pages
- * - Index a controlled set of high-intent presets per city
- * - Include crawl hubs (/cities, /countries, /countries/[country])
+ * Sitemap strategy:
+ * - Include only clean, canonical indexable routes.
+ * - Keep all city and preset landing pages discoverable.
+ * - Include geographic hubs.
+ * - Omit synthetic lastModified/changeFrequency/priority values.
  */
 
 const PRESET_SLUGS = [
@@ -33,7 +34,6 @@ function getCountrySlugs() {
 
 export default function sitemap() {
   const baseUrl = "https://igotnoplans.com";
-  const now = new Date().toISOString();
 
   const staticRoutes = [
     "",
@@ -44,33 +44,21 @@ export default function sitemap() {
     "/tonight",
     "/cities",
     "/countries",
-  ].map((p) => ({
-    url: `${baseUrl}${p}`,
-    lastModified: now,
-    changeFrequency: "weekly" as const,
-    priority: p === "" ? 1 : 0.8,
+  ].map((path) => ({
+    url: `${baseUrl}${path}`,
   }));
 
   const countryRoutes = getCountrySlugs().map((country) => ({
     url: `${baseUrl}/countries/${country}`,
-    lastModified: now,
-    changeFrequency: "weekly" as const,
-    priority: 0.75,
   }));
 
   const cityRoutes = SEED_CITIES.map((city) => ({
     url: `${baseUrl}/things-to-do-in/${city}`,
-    lastModified: now,
-    changeFrequency: "weekly" as const,
-    priority: 0.7,
   }));
 
   const presetRoutes = SEED_CITIES.flatMap((city) =>
     PRESET_SLUGS.map((preset) => ({
       url: `${baseUrl}/things-to-do-in/${city}/${preset}`,
-      lastModified: now,
-      changeFrequency: "daily" as const,
-      priority: 0.6,
     }))
   );
 
